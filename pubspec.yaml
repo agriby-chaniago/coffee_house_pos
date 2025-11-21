@@ -1,0 +1,78 @@
+name: coffee_house_pos
+description: "Coffee House POS System with Customer and Admin features"
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Backend
+  appwrite: ^13.0.0
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.3.3
+
+  # Connectivity
+  connectivity_plus: ^5.0.2
+
+  # Dependency Injection
+  get_it: ^7.6.7
+
+  # UI Components
+  cached_network_image: ^3.3.1
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # PDF & Printing
+  pdf: ^3.10.8
+  printing: ^5.12.0
+
+  # Image
+  image_picker: ^1.0.7
+  image: ^4.1.7
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # JSON Serialization
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.1
+
+  # Code Generation
+  build_runner: ^2.4.8
+  hive_generator: ^2.0.1
+  freezed: ^2.4.7
+  freezed_annotation: ^2.4.1
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+# Force newer version of flutter_web_auth_2 to fix Kotlin compatibility
+dependency_overrides:
+  flutter_web_auth_2: ^4.1.0
