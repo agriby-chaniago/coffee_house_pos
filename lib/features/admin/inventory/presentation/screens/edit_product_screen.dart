@@ -48,11 +48,11 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
     // Safely get variants with fallback values
     final variantM = widget.product.variants.firstWhere(
       (v) => v.size == 'M',
-      orElse: () => ProductVariant(size: 'M', price: 0, stockUsagePerUnit: 1),
+      orElse: () => const ProductVariant(size: 'M', price: 0, stockUsagePerUnit: 1),
     );
     final variantL = widget.product.variants.firstWhere(
       (v) => v.size == 'L',
-      orElse: () => ProductVariant(size: 'L', price: 0, stockUsagePerUnit: 1.5),
+      orElse: () => const ProductVariant(size: 'L', price: 0, stockUsagePerUnit: 1.5),
     );
 
     _priceMController = TextEditingController(text: variantM.price.toString());
@@ -216,7 +216,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
               Text('Category', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -279,7 +279,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
               Text('Stock Unit', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedStockUnit,
+                initialValue: _selectedStockUnit,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

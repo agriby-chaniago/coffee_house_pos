@@ -65,7 +65,7 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<Product>(
-                    value: _selectedProduct,
+                    initialValue: _selectedProduct,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -175,7 +175,7 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _wasteReason,
+                      initialValue: _wasteReason,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),

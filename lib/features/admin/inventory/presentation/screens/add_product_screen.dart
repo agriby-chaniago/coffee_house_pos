@@ -151,7 +151,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               Text('Category', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -216,7 +216,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               Text('Stock Unit', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedStockUnit,
+                initialValue: _selectedStockUnit,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
