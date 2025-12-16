@@ -86,6 +86,10 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
       print('✅ Product stock updated in AppWrite');
 
       // Create stock movement log
+      // Map 'waste' to 'adjustment' for AppWrite schema compatibility
+      final movementType =
+          adjustmentType == 'waste' ? 'adjustment' : adjustmentType;
+
       final movement = StockMovement(
         productId: product.id!,
         productName: product.name,
@@ -93,7 +97,9 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
         orderNumber: '',
         amount: adjustmentType == 'waste' ? -amount : amount,
         stockUnit: product.stockUnit,
-        type: adjustmentType,
+        type: movementType,
+        reason: adjustmentType == 'waste' ? reason : null,
+        notes: notes,
         performedBy: performedBy,
         timestamp: DateTime.now(),
       );
@@ -110,6 +116,8 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
           'amount': movement.amount,
           'stockUnit': movement.stockUnit,
           'type': movement.type,
+          if (movement.reason != null) 'reason': movement.reason,
+          if (movement.notes != null) 'notes': movement.notes,
           'performedBy': movement.performedBy,
           'timestamp': movement.timestamp.toIso8601String(),
         },
@@ -124,7 +132,8 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
           productName: product.name,
           amount: amount,
           stockUnit: product.stockUnit,
-          reason: reason ?? 'other',
+          reason: reason ??
+              'Other', // Default to 'Other' (capitalized for AppWrite enum)
           notes: notes,
           loggedBy: performedBy,
           timestamp: DateTime.now(),

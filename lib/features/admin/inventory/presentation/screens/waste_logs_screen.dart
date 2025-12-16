@@ -15,6 +15,13 @@ class WasteLogsScreen extends ConsumerWidget {
     final filter = ref.watch(wasteLogsFilterProvider);
     final totalAmount = ref.watch(totalWasteCostProvider);
 
+    // Debug: Log the async state
+    filteredLogsAsync.when(
+      data: (logs) => print('🔍 WASTE LOGS: Found ${logs.length} logs'),
+      loading: () => print('🔍 WASTE LOGS: Loading...'),
+      error: (err, stack) => print('🔍 WASTE LOGS ERROR: $err'),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Waste Logs'),
@@ -22,9 +29,7 @@ class WasteLogsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Filter coming soon')),
-              );
+              _showFilterDialog(context, ref, filter);
             },
             tooltip: 'Filter',
           ),
@@ -243,8 +248,9 @@ class _LogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Compare with displayName (capitalized) since AppWrite stores "Expired", "Damaged", etc.
     final reasonEnum = WasteReason.values.firstWhere(
-      (r) => r.name == log.reason,
+      (r) => r.displayName == log.reason,
       orElse: () => WasteReason.other,
     );
 

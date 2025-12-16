@@ -217,7 +217,8 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                       hint: const Text('Select reason'),
                       items: WasteReason.values.map((reason) {
                         return DropdownMenuItem(
-                          value: reason.name,
+                          value: reason
+                              .displayName, // Use displayName for AppWrite enum compatibility
                           child: Text(reason.displayName),
                         );
                       }).toList(),

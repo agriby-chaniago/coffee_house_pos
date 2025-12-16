@@ -29,6 +29,10 @@ mixin _$StockMovement {
   String get stockUnit => throw _privateConstructorUsedError;
   String get type =>
       throw _privateConstructorUsedError; // 'sale', 'restock', 'adjustment'
+  String? get reason =>
+      throw _privateConstructorUsedError; // For waste tracking: 'expired', 'damaged', 'spilled', 'other'
+  String? get notes =>
+      throw _privateConstructorUsedError; // Additional notes for adjustments/waste
   String get performedBy => throw _privateConstructorUsedError;
   DateTime get timestamp => throw _privateConstructorUsedError;
 
@@ -53,6 +57,8 @@ abstract class $StockMovementCopyWith<$Res> {
       double amount,
       String stockUnit,
       String type,
+      String? reason,
+      String? notes,
       String performedBy,
       DateTime timestamp});
 }
@@ -78,6 +84,8 @@ class _$StockMovementCopyWithImpl<$Res, $Val extends StockMovement>
     Object? amount = null,
     Object? stockUnit = null,
     Object? type = null,
+    Object? reason = freezed,
+    Object? notes = freezed,
     Object? performedBy = null,
     Object? timestamp = null,
   }) {
@@ -114,6 +122,14 @@ class _$StockMovementCopyWithImpl<$Res, $Val extends StockMovement>
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
+      reason: freezed == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as String?,
       performedBy: null == performedBy
           ? _value.performedBy
           : performedBy // ignore: cast_nullable_to_non_nullable
@@ -143,6 +159,8 @@ abstract class _$$StockMovementImplCopyWith<$Res>
       double amount,
       String stockUnit,
       String type,
+      String? reason,
+      String? notes,
       String performedBy,
       DateTime timestamp});
 }
@@ -166,6 +184,8 @@ class __$$StockMovementImplCopyWithImpl<$Res>
     Object? amount = null,
     Object? stockUnit = null,
     Object? type = null,
+    Object? reason = freezed,
+    Object? notes = freezed,
     Object? performedBy = null,
     Object? timestamp = null,
   }) {
@@ -202,6 +222,14 @@ class __$$StockMovementImplCopyWithImpl<$Res>
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
+      reason: freezed == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as String?,
       performedBy: null == performedBy
           ? _value.performedBy
           : performedBy // ignore: cast_nullable_to_non_nullable
@@ -226,6 +254,8 @@ class _$StockMovementImpl extends _StockMovement {
       required this.amount,
       required this.stockUnit,
       required this.type,
+      this.reason,
+      this.notes,
       required this.performedBy,
       required this.timestamp})
       : super._();
@@ -251,13 +281,19 @@ class _$StockMovementImpl extends _StockMovement {
   final String type;
 // 'sale', 'restock', 'adjustment'
   @override
+  final String? reason;
+// For waste tracking: 'expired', 'damaged', 'spilled', 'other'
+  @override
+  final String? notes;
+// Additional notes for adjustments/waste
+  @override
   final String performedBy;
   @override
   final DateTime timestamp;
 
   @override
   String toString() {
-    return 'StockMovement(id: $id, orderId: $orderId, orderNumber: $orderNumber, productId: $productId, productName: $productName, amount: $amount, stockUnit: $stockUnit, type: $type, performedBy: $performedBy, timestamp: $timestamp)';
+    return 'StockMovement(id: $id, orderId: $orderId, orderNumber: $orderNumber, productId: $productId, productName: $productName, amount: $amount, stockUnit: $stockUnit, type: $type, reason: $reason, notes: $notes, performedBy: $performedBy, timestamp: $timestamp)';
   }
 
   @override
@@ -277,6 +313,8 @@ class _$StockMovementImpl extends _StockMovement {
             (identical(other.stockUnit, stockUnit) ||
                 other.stockUnit == stockUnit) &&
             (identical(other.type, type) || other.type == type) &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.performedBy, performedBy) ||
                 other.performedBy == performedBy) &&
             (identical(other.timestamp, timestamp) ||
@@ -285,8 +323,20 @@ class _$StockMovementImpl extends _StockMovement {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, orderId, orderNumber,
-      productId, productName, amount, stockUnit, type, performedBy, timestamp);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      orderId,
+      orderNumber,
+      productId,
+      productName,
+      amount,
+      stockUnit,
+      type,
+      reason,
+      notes,
+      performedBy,
+      timestamp);
 
   @JsonKey(ignore: true)
   @override
@@ -312,6 +362,8 @@ abstract class _StockMovement extends StockMovement {
       required final double amount,
       required final String stockUnit,
       required final String type,
+      final String? reason,
+      final String? notes,
       required final String performedBy,
       required final DateTime timestamp}) = _$StockMovementImpl;
   const _StockMovement._() : super._();
@@ -336,6 +388,10 @@ abstract class _StockMovement extends StockMovement {
   @override
   String get type;
   @override // 'sale', 'restock', 'adjustment'
+  String? get reason;
+  @override // For waste tracking: 'expired', 'damaged', 'spilled', 'other'
+  String? get notes;
+  @override // Additional notes for adjustments/waste
   String get performedBy;
   @override
   DateTime get timestamp;

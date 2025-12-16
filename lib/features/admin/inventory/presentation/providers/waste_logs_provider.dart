@@ -9,35 +9,58 @@ final wasteLogsProvider = FutureProvider<List<WasteLog>>((ref) async {
   final appwrite = ref.watch(appwriteProvider);
 
   try {
+    print('═══════════════════════════════════════════════════════');
+    print('🔍 FETCHING WASTE LOGS FROM APPWRITE');
+    print('Database: ${AppwriteConfig.databaseId}');
+    print('Collection: ${AppwriteConfig.wasteLogsCollection}');
+    print('═══════════════════════════════════════════════════════');
+
     final response = await appwrite.databases.listDocuments(
       databaseId: AppwriteConfig.databaseId,
       collectionId: AppwriteConfig.wasteLogsCollection,
       queries: [
-        Query.orderDesc('\$createdAt'),
+        Query.orderDesc(
+            'timestamp'), // Order by timestamp field, not $createdAt
         Query.limit(100),
       ],
     );
 
-    return response.documents.map((doc) {
+    print('✅ Fetched ${response.documents.length} waste logs from AppWrite');
+
+    if (response.documents.isEmpty) {
+      print('⚠️  No documents found in waste_logs collection');
+      return [];
+    }
+
+    final logs = response.documents.map((doc) {
       final data = doc.data;
-      data['\$id'] = doc.$id;
-      data['\$createdAt'] = doc.$createdAt;
-      data['\$updatedAt'] = doc.$updatedAt;
+
+      print(
+          '📦 Parsing: ${data['productName']} | Amount: ${data['amount']} | Reason: ${data['reason']}');
 
       return WasteLog(
         id: doc.$id,
-        productId: data['productId'],
-        productName: data['productName'],
-        amount: (data['amount'] as num).toDouble(),
-        stockUnit: data['stockUnit'],
-        reason: data['reason'],
+        productId: data['productId'] ?? '',
+        productName: data['productName'] ?? 'Unknown',
+        amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+        stockUnit: data['stockUnit'] ?? 'pcs',
+        reason: data['reason'] ?? 'Other',
         notes: data['notes'],
-        loggedBy: data['loggedBy'],
+        loggedBy: data['loggedBy'] ?? '',
         timestamp: DateTime.parse(data['timestamp']),
       );
     }).toList();
-  } catch (e) {
-    print('Error fetching waste logs: $e');
+
+    print('✅ Successfully parsed ${logs.length} waste logs');
+    print('═══════════════════════════════════════════════════════');
+
+    return logs;
+  } catch (e, stackTrace) {
+    print('═══════════════════════════════════════════════════════');
+    print('❌ ERROR FETCHING WASTE LOGS');
+    print('Error: $e');
+    print('Stack trace: $stackTrace');
+    print('═══════════════════════════════════════════════════════');
     rethrow;
   }
 });

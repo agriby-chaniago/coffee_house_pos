@@ -16,6 +16,8 @@ _$StockMovementImpl _$$StockMovementImplFromJson(Map<String, dynamic> json) =>
       amount: (json['amount'] as num).toDouble(),
       stockUnit: json['stockUnit'] as String,
       type: json['type'] as String,
+      reason: json['reason'] as String?,
+      notes: json['notes'] as String?,
       performedBy: json['performedBy'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
@@ -30,6 +32,8 @@ Map<String, dynamic> _$$StockMovementImplToJson(_$StockMovementImpl instance) =>
       'amount': instance.amount,
       'stockUnit': instance.stockUnit,
       'type': instance.type,
+      'reason': instance.reason,
+      'notes': instance.notes,
       'performedBy': instance.performedBy,
       'timestamp': instance.timestamp.toIso8601String(),
     };

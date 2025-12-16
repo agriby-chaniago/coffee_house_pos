@@ -16,6 +16,9 @@ class StockMovement with _$StockMovement {
     required double amount,
     required String stockUnit,
     required String type, // 'sale', 'restock', 'adjustment'
+    String?
+        reason, // For waste tracking: 'expired', 'damaged', 'spilled', 'other'
+    String? notes, // Additional notes for adjustments/waste
     required String performedBy,
     required DateTime timestamp,
   }) = _StockMovement;

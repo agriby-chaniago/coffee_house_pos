@@ -512,10 +512,10 @@ When testing, look for:
 
 ---
 
-### 12. CRITICAL: Stock Adjustment - Waste Type Error (400) ⚠️🔴
+### 12. ✅ RESOLVED: Stock Adjustment - Waste Type Error (400)
 
 **Feature:** Stock Adjustment - Waste tracking  
-**Severity:** 🔴 CRITICAL
+**Severity:** 🔴 CRITICAL → ✅ RESOLVED
 
 **Issue:**
 
@@ -525,26 +525,81 @@ Error 400: value must be one of(sale, restock, adjustment)
 ```
 
 **Root Cause:**
-AppWrite enum validation - "waste" not in allowed movement types
 
-**Expected Behavior:**
+AppWrite `stock_movements` collection enum only accepts: `['sale', 'restock', 'adjustment']`  
+Code was trying to create movements with type `'waste'` which caused 400 error.
 
-- Admin pilih "Waste" (Expired/Damaged/Spilled/Other)
-- Stock movement created with type "waste"
-- Entry muncul di Waste Logs page
+**Fix Applied:** ✅ Code Workaround
 
-**Fix Options:**
+Instead of updating AppWrite schema, implemented smart mapping:
 
-1. **Update AppWrite schema**: Add "waste" to enum [sale, restock, adjustment, waste]
-2. **Code workaround**: Map waste → "adjustment" + add metadata field for waste reason
+- Waste adjustments now save as type `'adjustment'`
+- Added optional `reason` and `notes` fields to track waste metadata
+- Waste logs still created separately for reporting
 
-**Files to Update:**
+**Files Modified:**
 
-- AppWrite stock_movements collection schema
-- `lib/features/admin/inventory/data/models/stock_movement_model.dart`
-- Stock adjustment provider
+1. ✅ `lib/features/admin/inventory/data/models/stock_movement_model.dart`
 
-**Status:** 🔴 URGENT - Blocks waste tracking feature
+   - Added optional `String? reason` field
+   - Added optional `String? notes` field
+   - Rebuilded freezed models
+
+2. ✅ `lib/features/admin/inventory/presentation/providers/stock_adjustment_provider.dart`
+   - Map `'waste'` → `'adjustment'` before saving to AppWrite
+   - Include `reason` and `notes` in stock movement data
+   - Waste logs still created in `waste_logs` collection for reports
+
+**How It Works Now:**
+
+```dart
+// When user selects "Waste":
+adjustmentType = 'waste'
+
+// Code maps to AppWrite-compatible type:
+movementType = 'adjustment'
+
+// Saves to stock_movements with:
+{
+  type: 'adjustment',        // ✅ AppWrite accepts this
+  reason: 'Expired',         // Capitalized enum value (Expired/Damaged/Spilled/Other)
+  notes: 'expired milk',     // Additional context
+  amount: -5                 // Negative = stock reduction
+}
+
+// Also creates separate waste_logs entry for reporting
+```
+
+**AppWrite Schema Update:** ✅ VERIFIED
+
+The `stock_movements` collection already has:
+
+- `reason` attribute (Enum: Expired, Damaged, Spilled, Other)
+- `notes` attribute (String, optional)
+
+**Additional Fix Applied:**
+
+Changed dropdown value from lowercase (`reason.name`) to capitalized (`reason.displayName`) to match AppWrite enum:
+
+- ❌ Before: "expired", "damaged", "spilled", "other"
+- ✅ After: "Expired", "Damaged", "Spilled", "Other"
+
+**Files Updated:**
+
+- ✅ `stock_adjustment_screen.dart` - Use `displayName` instead of `name`
+- ✅ `stock_adjustment_provider.dart` - Default fallback to 'Other' (capitalized)
+- ✅ `waste_logs_provider.dart` - Fixed query ordering (use `timestamp` field) + added null safety
+- ✅ `waste_logs_screen.dart` - Fixed enum comparison to use `displayName` for capitalized values
+
+**Additional Fixes for Waste Logs Display:**
+
+1. **Query Issue:** Changed `Query.orderDesc('$createdAt')` → `Query.orderDesc('timestamp')`
+   - AppWrite was trying to sort by system field instead of custom timestamp
+2. **Enum Comparison:** Fixed `r.name == log.reason` → `r.displayName == log.reason`
+   - Was comparing lowercase enum name with capitalized AppWrite value
+3. **Null Safety:** Added default values for all fields to prevent parsing errors
+
+**Status:** ✅ FULLY RESOLVED & TESTED - Waste logs now display correctly
 
 ---
 
