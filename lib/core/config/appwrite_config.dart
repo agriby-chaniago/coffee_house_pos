@@ -17,7 +17,7 @@ class AppwriteConfig {
   static const String wasteLogsCollection = 'waste_logs';
 
   // Storage
-  static const String productImagesBucket = 'product-images';
+  static const String productImagesBucket = '69207cf60029bbb16f46';
 
   // OAuth
   // For Android, use appwrite-callback-[PROJECT_ID] format

@@ -7,7 +7,7 @@ class AppConstants {
     'Coffee',
     'Non-Coffee',
     'Food',
-    'Snack',
+    'Dessert',
   ];
 
   // Stock Units

@@ -488,14 +488,28 @@ When testing, look for:
 3. Image view URL tidak accessible
 4. CORS or permissions issue
 
-**Investigation Needed:**
+**Root Cause Identified:**
 
-- Check AppWrite storage bucket settings (public access)
-- Verify image URL format in database
-- Check browser network logs for 403/404 errors
-- Test direct URL access
+1. Image URL using `/view` endpoint requires authentication
+2. UI showing category icons instead of actual product images
 
-**Status:** 🔴 URGENT - Must investigate & fix
+**Fix Applied:** ✅
+
+1. Changed URL from `/view` to `/preview` with dimensions for public access:
+   ```dart
+   // Old: .../files/${fileId}/view?project=xxx
+   // New: .../files/${fileId}/preview?project=xxx&width=400&height=400&output=jpg
+   ```
+2. Updated inventory_screen.dart to display product images instead of category icons
+3. Added fallback to icon if image fails to load
+
+**Files Modified:**
+
+- ✅ `product_form_provider.dart` - Changed URL construction
+- ✅ `edit_product_provider.dart` - Changed URL construction
+- ✅ `inventory_screen.dart` - Display NetworkImage with fallback
+
+**Status:** ✅ FIXED - Ready for testing
 
 ---
 

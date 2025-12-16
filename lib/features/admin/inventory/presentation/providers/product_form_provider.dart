@@ -75,7 +75,9 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
 
           imageUrl =
               '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productImagesBucket}/files/${file.$id}/view?project=${AppwriteConfig.projectId}';
-          print('✅ Image uploaded: ${file.$id}');
+          print('✅ Image uploaded successfully');
+          print('   File ID: ${file.$id}');
+          print('   Image URL: $imageUrl');
         } catch (e) {
           print('⚠️ Image upload failed: $e');
           print('   Continuing with empty image URL...');

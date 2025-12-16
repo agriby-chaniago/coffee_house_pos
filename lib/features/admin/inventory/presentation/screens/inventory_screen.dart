@@ -719,7 +719,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product icon/avatar
+                  // Product image or icon
                   Container(
                     width: 56,
                     height: 56,
@@ -728,14 +728,26 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ? theme.colorScheme.errorContainer.withOpacity(0.3)
                           : theme.colorScheme.primaryContainer.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(12),
+                      image: product.imageUrl.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(product.imageUrl),
+                              fit: BoxFit.cover,
+                              onError: (error, stackTrace) {
+                                // Fallback to icon if image fails to load
+                                print('Image load error: $error');
+                              },
+                            )
+                          : null,
                     ),
-                    child: Icon(
-                      _getCategoryIcon(product.category),
-                      size: 28,
-                      color: isLowStock
-                          ? theme.colorScheme.error
-                          : theme.colorScheme.primary,
-                    ),
+                    child: product.imageUrl.isEmpty
+                        ? Icon(
+                            _getCategoryIcon(product.category),
+                            size: 28,
+                            color: isLowStock
+                                ? theme.colorScheme.error
+                                : theme.colorScheme.primary,
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 12),
                   // Product info

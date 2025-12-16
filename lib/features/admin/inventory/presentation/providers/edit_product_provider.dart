@@ -76,7 +76,9 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
 
           imageUrl =
               '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productImagesBucket}/files/${file.$id}/view?project=${AppwriteConfig.projectId}';
-          print('✅ New image uploaded: ${file.$id}');
+          print('✅ New image uploaded successfully');
+          print('   File ID: ${file.$id}');
+          print('   Image URL: $imageUrl');
         } catch (e) {
           print('⚠️ Image upload failed: $e');
           print('   Keeping existing image URL...');
