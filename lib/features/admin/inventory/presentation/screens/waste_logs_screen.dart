@@ -382,3 +382,146 @@ class _ReasonInfo {
 
   _ReasonInfo(this.color, this.icon);
 }
+
+void _showFilterDialog(
+    BuildContext context, WidgetRef ref, WasteLogsFilter currentFilter) {
+  DateTime? tempStartDate = currentFilter.startDate;
+  DateTime? tempEndDate = currentFilter.endDate;
+  String? tempReason = currentFilter.reasonFilter;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Filter Waste Logs'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date Range
+                  Text(
+                    'Date Range',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(
+                            tempStartDate == null
+                                ? 'Start Date'
+                                : DateFormat('dd MMM yyyy')
+                                    .format(tempStartDate!),
+                          ),
+                          onPressed: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: tempStartDate ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) {
+                              setState(() => tempStartDate = date);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(
+                            tempEndDate == null
+                                ? 'End Date'
+                                : DateFormat('dd MMM yyyy').format(tempEndDate!),
+                          ),
+                          onPressed: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: tempEndDate ?? DateTime.now(),
+                              firstDate: tempStartDate ?? DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) {
+                              setState(() => tempEndDate = date);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Reason Filter
+                  Text(
+                    'Reason',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: tempReason,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    hint: const Text('All Reasons'),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('All Reasons'),
+                      ),
+                      ...WasteReason.values.map((reason) {
+                        return DropdownMenuItem(
+                          value: reason.displayName,
+                          child: Text(reason.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => tempReason = value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    tempStartDate = null;
+                    tempEndDate = null;
+                    tempReason = null;
+                  });
+                },
+                child: const Text('Clear'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  ref.read(wasteLogsFilterProvider.notifier).setDateRange(
+                        tempStartDate,
+                        tempEndDate,
+                      );
+                  ref
+                      .read(wasteLogsFilterProvider.notifier)
+                      .setReasonFilter(tempReason);
+                  Navigator.pop(context);
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
