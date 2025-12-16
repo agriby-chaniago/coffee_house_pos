@@ -52,13 +52,13 @@ class OrderCard extends StatelessWidget {
                   Icon(
                     Icons.access_time,
                     size: 14,
-                    color: theme.colorScheme.outline,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     DateFormat('MMM dd, yyyy · HH:mm').format(order.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -72,14 +72,14 @@ class OrderCard extends StatelessWidget {
                     Icon(
                       Icons.person,
                       size: 14,
-                      color: theme.colorScheme.outline,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         order.customerName!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -95,14 +95,14 @@ class OrderCard extends StatelessWidget {
                   Icon(
                     Icons.person_outline,
                     size: 14,
-                    color: theme.colorScheme.outline,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Cashier: ${order.cashierName}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -140,7 +140,7 @@ class OrderCard extends StatelessWidget {
                   Text(
                     'Payment',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Container(
@@ -167,7 +167,7 @@ class OrderCard extends StatelessWidget {
               Text(
                 '${order.items.length} item${order.items.length != 1 ? 's' : ''}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

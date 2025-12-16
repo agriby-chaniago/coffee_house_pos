@@ -16,11 +16,32 @@ class _AddAddOnScreenState extends ConsumerState<AddAddOnScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
-  final _sortOrderController = TextEditingController(text: '0');
+  final _sortOrderController = TextEditingController();
 
   String _selectedCategory = AddOnCategory.topping;
   bool _isDefault = false;
   bool _isActive = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-calculate sortOrder after frame builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _calculateNextSortOrder();
+    });
+  }
+
+  void _calculateNextSortOrder() {
+    final addonsAsync = ref.read(addonsProvider);
+    addonsAsync.whenData((addons) {
+      final maxSortOrder = addons.isEmpty
+          ? 0
+          : addons.map((a) => a.sortOrder).reduce((a, b) => a > b ? a : b);
+      setState(() {
+        _sortOrderController.text = (maxSortOrder + 1).toString();
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -64,7 +85,7 @@ class _AddAddOnScreenState extends ConsumerState<AddAddOnScreen> {
 
             // Category
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Category *',
                 border: OutlineInputBorder(),

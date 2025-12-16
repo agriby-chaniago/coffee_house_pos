@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/constants/app_constants.dart';
 import '../providers/product_form_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/addons_provider.dart';
 import '../../../pos/presentation/providers/products_provider.dart';
 
 class AddProductScreen extends ConsumerStatefulWidget {
@@ -28,6 +29,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   String _selectedCategory = AppConstants.productCategories.first;
   String _selectedStockUnit = AppConstants.stockUnits.first;
   File? _selectedImage;
+  final Set<String> _selectedAddOnIds = {};
 
   @override
   void dispose() {
@@ -334,7 +336,24 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               ),
 
               const SizedBox(height: 32),
+              // Available Add-ons
+              Text(
+                'Available Add-ons',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Select which add-ons/toppings are available for this product',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildAddOnsSection(theme),
 
+              const SizedBox(height: 32),
               // Submit button
               SizedBox(
                 width: double.infinity,
@@ -468,6 +487,142 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     );
   }
 
+  Widget _buildAddOnsSection(ThemeData theme) {
+    final addOnsAsync = ref.watch(addonsProvider);
+
+    return addOnsAsync.when(
+      data: (addOns) {
+        if (addOns.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No add-ons available',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Create add-ons in Toppings Management first',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Counter and limit info
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: _selectedAddOnIds.length >= 5
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Selected: ${_selectedAddOnIds.length}/5',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _selectedAddOnIds.length >= 5
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (_selectedAddOnIds.length >= 5) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          '(Maximum reached)',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                ...addOns.map((addOn) {
+                  final isSelected = _selectedAddOnIds.contains(addOn.id);
+                  final canSelect = isSelected || _selectedAddOnIds.length < 5;
+
+                  return CheckboxListTile(
+                    title: Text(
+                      addOn.name,
+                      style: TextStyle(
+                        color: canSelect
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.onSurface.withOpacity(0.4),
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${addOn.category} • +Rp ${addOn.additionalPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: canSelect
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSurfaceVariant
+                                .withOpacity(0.4),
+                      ),
+                    ),
+                    value: isSelected,
+                    onChanged: canSelect
+                        ? (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                if (_selectedAddOnIds.length < 5) {
+                                  _selectedAddOnIds.add(addOn.id!);
+                                }
+                              } else {
+                                _selectedAddOnIds.remove(addOn.id);
+                              }
+                            });
+                          }
+                        : null,
+                    dense: true,
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Error loading add-ons: $error',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickImage() async {
     final image = await ref.read(productFormProvider.notifier).pickImage();
     if (image != null) {
@@ -481,19 +636,19 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref.read(productFormProvider.notifier).createProduct(
-      name: _nameController.text,
-      description: _descriptionController.text,
-      category: _selectedCategory,
-      imageFile: _selectedImage,
-      priceM: double.parse(_priceMController.text),
-      stockUsageM: double.parse(_stockUsageMController.text),
-      priceL: double.parse(_priceLController.text),
-      stockUsageL: double.parse(_stockUsageLController.text),
-      stockUnit: _selectedStockUnit,
-      initialStock: double.parse(_initialStockController.text),
-      minStock: double.parse(_minStockController.text),
-      availableAddOnIds: [],
-    );
+          name: _nameController.text,
+          description: _descriptionController.text,
+          category: _selectedCategory,
+          imageFile: _selectedImage,
+          priceM: double.parse(_priceMController.text),
+          stockUsageM: double.parse(_stockUsageMController.text),
+          priceL: double.parse(_priceLController.text),
+          stockUsageL: double.parse(_stockUsageLController.text),
+          stockUnit: _selectedStockUnit,
+          initialStock: double.parse(_initialStockController.text),
+          minStock: double.parse(_minStockController.text),
+          availableAddOnIds: _selectedAddOnIds.toList(),
+        );
 
     if (!mounted) return;
 

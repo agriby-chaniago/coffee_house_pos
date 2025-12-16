@@ -465,7 +465,7 @@ void _showFilterDialog(
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: tempReason,
+                    initialValue: tempReason,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       contentPadding:

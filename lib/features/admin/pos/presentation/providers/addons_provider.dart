@@ -57,28 +57,14 @@ final addonsProvider = FutureProvider<List<AddOn>>((ref) async {
 });
 
 final addonsByCategoryProvider =
-    Provider.family<List<AddOn>, String>((ref, category) {
-  final addonsAsync = ref.watch(addonsProvider);
-
-  return addonsAsync.when(
-    data: (addons) {
-      if (category.isEmpty) return addons;
-      return addons.where((a) => a.category == category).toList();
-    },
-    loading: () => [],
-    error: (_, __) => [],
-  );
+    FutureProvider.family<List<AddOn>, String>((ref, category) async {
+  final allAddons = await ref.watch(addonsProvider.future);
+  if (category.isEmpty) return allAddons;
+  return allAddons.where((a) => a.category == category).toList();
 });
 
 final addonsForProductProvider =
-    Provider.family<List<AddOn>, List<String>>((ref, addonIds) {
-  final addonsAsync = ref.watch(addonsProvider);
-
-  return addonsAsync.when(
-    data: (addons) {
-      return addons.where((a) => addonIds.contains(a.id)).toList();
-    },
-    loading: () => [],
-    error: (_, __) => [],
-  );
+    FutureProvider.family<List<AddOn>, List<String>>((ref, addonIds) async {
+  final allAddons = await ref.watch(addonsProvider.future);
+  return allAddons.where((a) => addonIds.contains(a.id) && a.isActive).toList();
 });

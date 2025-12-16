@@ -53,6 +53,7 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
     required String stockUnit,
     required double minStock,
     required bool isActive,
+    required List<String> availableAddOnIds,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -138,7 +139,7 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
         category: category,
         imageUrl: imageUrl,
         variants: variants,
-        availableAddOnIds: [],
+        availableAddOnIds: availableAddOnIds,
         stockUnit: stockUnit,
         currentStock: 0,
         minStock: minStock,
@@ -154,6 +155,7 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
         'category': category,
         'imageUrl': imageUrl,
         'variants': tempProduct.toJson()['variants'],
+        'availableAddOnIds': tempProduct.toJson()['availableAddOnIds'],
         'stockUnit': stockUnit,
         'minStock': minStock,
         'isActive': isActive,

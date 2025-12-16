@@ -72,7 +72,7 @@ class OfflineBanner extends ConsumerWidget {
         TextButton(
           onPressed: () {
             // Try to sync manually
-            ref.read(syncStatusProvider.notifier).triggerSync();
+            ref.read(syncStatusProvider.notifier).manualSync();
           },
           child: const Text(
             'RETRY',

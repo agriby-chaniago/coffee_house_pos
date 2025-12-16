@@ -128,7 +128,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           // Cart icon (moved from bottom nav)
           Badge(
             label: Text(cart.items.length.toString()),
-            isLabelVisible: cart.items.length > 0,
+            isLabelVisible: cart.items.isNotEmpty,
             child: IconButton(
               icon: const Icon(Icons.shopping_cart_outlined),
               tooltip: 'Cart (${cart.items.length} items)',
@@ -696,12 +696,43 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       child: InkWell(
         onTap: () {
           // Show add to cart dialog with variant and addon selection
-          showDialog(
-            context: context,
-            builder: (context) => AddToCartDialog(
-              product: product,
-              availableAddons: addonsAsync,
-            ),
+          // Debug: Check product's availableAddOnIds
+          print('🔍 Product: ${product.name}');
+          print('📋 Available Add-on IDs: ${product.availableAddOnIds}');
+
+          // Handle AsyncValue properly
+          addonsAsync.when(
+            data: (addons) {
+              print(
+                  '✅ Loaded ${addons.length} add-ons: ${addons.map((a) => a.name).toList()}');
+              showDialog(
+                context: context,
+                builder: (context) => AddToCartDialog(
+                  product: product,
+                  availableAddons: addons,
+                ),
+              );
+            },
+            loading: () {
+              print('⏳ Add-ons still loading, showing with empty list...');
+              showDialog(
+                context: context,
+                builder: (context) => AddToCartDialog(
+                  product: product,
+                  availableAddons: [],
+                ),
+              );
+            },
+            error: (error, stack) {
+              print('❌ Error loading add-ons: $error');
+              showDialog(
+                context: context,
+                builder: (context) => AddToCartDialog(
+                  product: product,
+                  availableAddons: [],
+                ),
+              );
+            },
           );
         },
         child: Column(

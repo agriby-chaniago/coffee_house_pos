@@ -4,7 +4,7 @@ import '../../../../../core/config/appwrite_config.dart';
 import '../../../../../core/services/appwrite_service.dart';
 import '../../../../../core/services/offline_sync_manager.dart';
 import '../../../../../core/utils/error_handler.dart';
-import '../../../../../core/models/operation_type.dart';
+import '../../../../../core/models/offline_queue_item_model.dart';
 
 class EditAddOnState {
   final bool isLoading;
