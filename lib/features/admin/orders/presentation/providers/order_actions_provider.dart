@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
+import 'package:coffee_house_pos/core/models/offline_queue_item_model.dart';
 
 part 'order_actions_provider.freezed.dart';
 
@@ -41,22 +43,39 @@ class OrderActionsNotifier extends StateNotifier<OrderActionState> {
         data['completedAt'] = DateTime.now().toIso8601String();
       }
 
-      await _appwrite.databases.updateDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.ordersCollection,
-        documentId: orderId,
-        data: data,
-      );
+      try {
+        await _appwrite.databases.updateDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.ordersCollection,
+          documentId: orderId,
+          data: data,
+        );
 
-      print('✅ Order status updated successfully');
-      print('═══════════════════════════════════════════════════════');
+        print('✅ Order status updated successfully');
+        print('═══════════════════════════════════════════════════════');
 
-      state = OrderActionState.success(
-        'Order updated to ${_formatStatus(newStatus)}',
-      );
-    } on AppwriteException catch (e) {
-      print('❌ APPWRITE ERROR: ${e.message}');
-      state = OrderActionState.error(e.message ?? 'Failed to update order');
+        state = OrderActionState.success(
+          'Order updated to ${_formatStatus(newStatus)}',
+        );
+      } catch (syncError) {
+        print('⚠️ Offline or sync failed - Queuing order status update');
+        print('Error: $syncError');
+
+        // Queue for offline sync
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.update,
+          collectionName: AppwriteConfig.ordersCollection,
+          documentId: orderId,
+          data: data,
+        );
+
+        print('📥 Order status update queued for sync when online');
+        print('═══════════════════════════════════════════════════════');
+
+        state = OrderActionState.success(
+          'Order updated (will sync when online)',
+        );
+      }
     } catch (e) {
       print('❌ UNKNOWN ERROR: $e');
       state = OrderActionState.error('Failed to update order: $e');
@@ -74,24 +93,43 @@ class OrderActionsNotifier extends StateNotifier<OrderActionState> {
       print('Reason: $reason');
       print('═══════════════════════════════════════════════════════');
 
-      await _appwrite.databases.updateDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.ordersCollection,
-        documentId: orderId,
-        data: {
-          'status': 'cancelled',
-          'cancelledAt': DateTime.now().toIso8601String(),
-          'cancellationReason': reason,
-        },
-      );
+      final data = {
+        'status': 'cancelled',
+        'cancelledAt': DateTime.now().toIso8601String(),
+        'cancellationReason': reason,
+      };
 
-      print('✅ Order cancelled successfully');
-      print('═══════════════════════════════════════════════════════');
+      try {
+        await _appwrite.databases.updateDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.ordersCollection,
+          documentId: orderId,
+          data: data,
+        );
 
-      state = const OrderActionState.success('Order cancelled successfully');
-    } on AppwriteException catch (e) {
-      print('❌ APPWRITE ERROR: ${e.message}');
-      state = OrderActionState.error(e.message ?? 'Failed to cancel order');
+        print('✅ Order cancelled successfully');
+        print('═══════════════════════════════════════════════════════');
+
+        state = const OrderActionState.success('Order cancelled successfully');
+      } catch (syncError) {
+        print('⚠️ Offline or sync failed - Queuing order cancellation');
+        print('Error: $syncError');
+
+        // Queue for offline sync
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.update,
+          collectionName: AppwriteConfig.ordersCollection,
+          documentId: orderId,
+          data: data,
+        );
+
+        print('📥 Order cancellation queued for sync when online');
+        print('═══════════════════════════════════════════════════════');
+
+        state = const OrderActionState.success(
+          'Order cancelled (will sync when online)',
+        );
+      }
     } catch (e) {
       print('❌ UNKNOWN ERROR: $e');
       state = OrderActionState.error('Failed to cancel order: $e');
