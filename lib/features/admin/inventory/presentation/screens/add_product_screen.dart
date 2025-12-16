@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/constants/app_constants.dart';
 import '../providers/product_form_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../../../pos/presentation/providers/products_provider.dart';
 
 class AddProductScreen extends ConsumerStatefulWidget {
   const AddProductScreen({super.key});
@@ -276,11 +277,17 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Required';
+                          return 'Initial stock is required';
                         }
                         final num = double.tryParse(value);
-                        if (num == null || num < 0) {
-                          return 'Invalid';
+                        if (num == null) {
+                          return 'Invalid number';
+                        }
+                        if (num < 0) {
+                          return 'Cannot be negative';
+                        }
+                        if (num > 1000000) {
+                          return 'Value too large';
                         }
                         return null;
                       },
@@ -307,11 +314,17 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Required';
+                          return 'Min stock is required';
                         }
                         final num = double.tryParse(value);
-                        if (num == null || num < 0) {
-                          return 'Invalid';
+                        if (num == null) {
+                          return 'Invalid number';
+                        }
+                        if (num < 0) {
+                          return 'Cannot be negative';
+                        }
+                        if (num > 1000000) {
+                          return 'Value too large';
                         }
                         return null;
                       },
@@ -394,11 +407,17 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Required';
+                        return 'Price is required';
                       }
                       final num = double.tryParse(value);
-                      if (num == null || num <= 0) {
-                        return 'Invalid';
+                      if (num == null) {
+                        return 'Invalid number';
+                      }
+                      if (num <= 0) {
+                        return 'Must be greater than 0';
+                      }
+                      if (num > 10000000) {
+                        return 'Price too large';
                       }
                       return null;
                     },
@@ -425,11 +444,17 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Required';
+                        return 'Stock usage is required';
                       }
                       final num = double.tryParse(value);
-                      if (num == null || num <= 0) {
-                        return 'Invalid';
+                      if (num == null) {
+                        return 'Invalid number';
+                      }
+                      if (num <= 0) {
+                        return 'Must be greater than 0';
+                      }
+                      if (num > 100000) {
+                        return 'Value too large';
                       }
                       return null;
                     },
@@ -473,7 +498,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     if (!mounted) return;
 
     if (success) {
+      // Invalidate both inventory and POS products
       ref.invalidate(inventoryProductsProvider);
+      ref.invalidate(productsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

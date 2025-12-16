@@ -356,7 +356,7 @@ class _MetricsSection extends ConsumerWidget {
             value: CurrencyFormatter.format(metrics.totalRevenue),
             change: metrics.revenueChange,
             icon: Icons.attach_money,
-            color: const Color(0xFF40A02B), // green
+            color: const Color(0xFF2D7A1F), // darker green for better contrast
             bgColor: const Color(0xFFE6F4E1),
           ),
           const SizedBox(height: 12),
@@ -368,7 +368,8 @@ class _MetricsSection extends ConsumerWidget {
                   value: metrics.orderCount.toString(),
                   change: metrics.orderCountChange,
                   icon: Icons.receipt_long,
-                  color: const Color(0xFFD20F39), // red
+                  color:
+                      const Color(0xFFA10D2E), // darker red for better contrast
                   bgColor: const Color(0xFFFEE5EA),
                 ),
               ),
@@ -379,7 +380,8 @@ class _MetricsSection extends ConsumerWidget {
                   value: CurrencyFormatter.format(metrics.averageOrderValue),
                   change: metrics.avgOrderValueChange,
                   icon: Icons.trending_up,
-                  color: const Color(0xFF8839EF), // mauve
+                  color: const Color(
+                      0xFF6328B8), // darker purple for better contrast
                   bgColor: const Color(0xFFF2E9FC),
                 ),
               ),
@@ -492,6 +494,7 @@ class _SalesTrendChart extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final filter = ref.watch(reportsFilterProvider);
     final dailySalesAsync = ref.watch(dailySalesProvider);
 
     return Card(
@@ -527,127 +530,272 @@ class _SalesTrendChart extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            dailySalesAsync.when(
-              data: (dailySales) {
-                if (dailySales.isEmpty) {
-                  return const SizedBox(
-                    height: 200,
-                    child: Center(child: Text('No data available')),
-                  );
-                }
-
-                final maxRevenue = dailySales
-                    .map((e) => e.revenue)
-                    .reduce((a, b) => a > b ? a : b);
-
-                final horizontalInterval =
-                    maxRevenue > 0 ? (maxRevenue / 5).toDouble() : 1.0;
-
-                return SizedBox(
-                  height: 250,
-                  child: LineChart(
-                    LineChartData(
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        horizontalInterval: horizontalInterval,
-                      ),
-                      titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 60,
-                            getTitlesWidget: (value, meta) {
-                              return Text(
-                                CurrencyFormatter.formatCompact(value),
-                                style: theme.textTheme.bodySmall,
-                              );
-                            },
-                          ),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 40,
-                            interval: dailySales.length > 1
-                                ? (dailySales.length / 5).ceilToDouble()
-                                : 1,
-                            getTitlesWidget: (value, meta) {
-                              if (value.toInt() >= dailySales.length) {
-                                return const SizedBox();
-                              }
-                              final date = dailySales[value.toInt()].date;
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  DateFormat('MMM dd').format(date),
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      lineBarsData: [
-                        LineChartBarData(
-                          spots: dailySales
-                              .asMap()
-                              .entries
-                              .map((entry) => FlSpot(
-                                    entry.key.toDouble(),
-                                    entry.value.revenue,
-                                  ))
-                              .toList(),
-                          isCurved: true,
-                          color: const Color(0xFF1E66F5),
-                          barWidth: 3,
-                          dotData: FlDotData(
-                            show: dailySales.length <= 10,
-                          ),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            color: const Color(0xFF1E66F5).withOpacity(0.2),
-                          ),
-                        ),
-                      ],
-                      lineTouchData: LineTouchData(
-                        touchTooltipData: LineTouchTooltipData(
-                          getTooltipItems: (touchedSpots) {
-                            return touchedSpots.map((spot) {
-                              final date = dailySales[spot.x.toInt()].date;
-                              return LineTooltipItem(
-                                '${DateFormat('MMM dd').format(date)}\n${CurrencyFormatter.format(spot.y)}',
-                                TextStyle(
-                                  color: theme.colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            }).toList();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-              loading: () => const SizedBox(
-                height: 250,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, _) => SizedBox(
-                height: 250,
-                child: Center(child: Text('Error: $error')),
-              ),
-            ),
+            // Show hourly chart for "today", daily chart otherwise
+            filter.rangeType == DateRangeFilter.today
+                ? _buildHourlyChart(context, ref, theme)
+                : _buildDailyChart(context, ref, theme, dailySalesAsync),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDailyChart(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    AsyncValue dailySalesAsync,
+  ) {
+    return dailySalesAsync.when(
+      data: (dailySales) {
+        if (dailySales.isEmpty) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('No data available')),
+          );
+        }
+
+        final maxRevenue =
+            dailySales.map((e) => e.revenue).reduce((a, b) => a > b ? a : b);
+
+        final horizontalInterval =
+            maxRevenue > 0 ? (maxRevenue / 5).toDouble() : 1.0;
+
+        return SizedBox(
+          height: 250,
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: horizontalInterval,
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 60,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        CurrencyFormatter.formatCompact(value),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF1E66F5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: dailySales.length > 1
+                        ? (dailySales.length / 5).ceilToDouble()
+                        : 1,
+                    getTitlesWidget: (value, meta) {
+                      if (value.toInt() >= dailySales.length) {
+                        return const SizedBox();
+                      }
+                      final date = dailySales[value.toInt()].date;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          DateFormat('MMM dd').format(date),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF1E66F5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: dailySales
+                      .asMap()
+                      .entries
+                      .map<FlSpot>((entry) => FlSpot(
+                            entry.key.toDouble(),
+                            entry.value.revenue,
+                          ))
+                      .toList(),
+                  isCurved: true,
+                  color: const Color(0xFF1E66F5),
+                  barWidth: 3,
+                  dotData: FlDotData(
+                    show: dailySales.length <= 10,
+                  ),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: const Color(0xFF1E66F5).withOpacity(0.2),
+                  ),
+                ),
+              ],
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final date = dailySales[spot.x.toInt()].date;
+                      return LineTooltipItem(
+                        '${DateFormat('MMM dd').format(date)}\n${CurrencyFormatter.format(spot.y)}',
+                        TextStyle(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 250,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => SizedBox(
+        height: 250,
+        child: Center(child: Text('Error: $error')),
+      ),
+    );
+  }
+
+  Widget _buildHourlyChart(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+  ) {
+    final hourlySalesAsync = ref.watch(hourlySalesProvider);
+
+    return hourlySalesAsync.when(
+      data: (hourlySales) {
+        if (hourlySales.isEmpty) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('No data available')),
+          );
+        }
+
+        final maxRevenue =
+            hourlySales.map((e) => e.revenue).reduce((a, b) => a > b ? a : b);
+
+        final horizontalInterval =
+            maxRevenue > 0 ? (maxRevenue / 5).toDouble() : 1.0;
+
+        return SizedBox(
+          height: 250,
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: horizontalInterval,
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 60,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        CurrencyFormatter.formatCompact(value),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF1E66F5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval:
+                        3, // Show every 3 hours (0, 3, 6, 9, 12, 15, 18, 21)
+                    getTitlesWidget: (value, meta) {
+                      if (value.toInt() >= 24) {
+                        return const SizedBox();
+                      }
+                      final hour = value.toInt();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          '${hour.toString().padLeft(2, '0')}:00',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF1E66F5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: hourlySales
+                      .map<FlSpot>((e) => FlSpot(
+                            e.hour.toDouble(),
+                            e.revenue,
+                          ))
+                      .toList(),
+                  isCurved: true,
+                  color: const Color(0xFF1E66F5),
+                  barWidth: 3,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: const Color(0xFF1E66F5).withOpacity(0.2),
+                  ),
+                ),
+              ],
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final hour = spot.x.toInt();
+                      return LineTooltipItem(
+                        '${hour.toString().padLeft(2, '0')}:00\n${CurrencyFormatter.format(spot.y)}',
+                        TextStyle(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 250,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => SizedBox(
+        height: 250,
+        child: Center(child: Text('Error: $error')),
       ),
     );
   }
@@ -725,12 +873,25 @@ class _TopProductsSection extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      title: Text(product.productName),
-                      subtitle: Text('${product.quantity} sold'),
+                      title: Text(
+                        product.productName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF4C4F69),
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${product.quantity} sold',
+                        style: const TextStyle(
+                          color: Color(0xFF5C5F77),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       trailing: Text(
                         CurrencyFormatter.format(product.revenue),
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: const Color(0xFFD20F39),
                         ),
                       ),
                     );
@@ -864,12 +1025,19 @@ class _CategoryPerformanceSection extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(category.category),
+                              child: Text(
+                                category.category,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF4C4F69),
+                                ),
+                              ),
                             ),
                             Text(
                               '${percentage.toStringAsFixed(1)}% • ${CurrencyFormatter.format(category.revenue)}',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.outline,
+                                color: const Color(0xFF5C5F77),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -974,7 +1142,7 @@ class _HourlyHeatmapSection extends ConsumerWidget {
                               fontSize: 9,
                               color: intensity > 0.5
                                   ? Colors.white
-                                  : theme.colorScheme.onSurface,
+                                  : const Color(0xFF2D7A1F),
                             ),
                           ),
                           const SizedBox(height: 1),
@@ -982,9 +1150,10 @@ class _HourlyHeatmapSection extends ConsumerWidget {
                             '${hourData.orderCount}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 10,
+                              fontWeight: FontWeight.w600,
                               color: intensity > 0.5
                                   ? Colors.white
-                                  : theme.colorScheme.onSurface,
+                                  : const Color(0xFF2D7A1F),
                             ),
                           ),
                         ],
@@ -1086,7 +1255,10 @@ class _PaymentMethodsSection extends ConsumerWidget {
                             getTitlesWidget: (value, meta) {
                               return Text(
                                 value.toInt().toString(),
-                                style: theme.textTheme.bodySmall,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: const Color(0xFFB4388D),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               );
                             },
                           ),
@@ -1103,7 +1275,10 @@ class _PaymentMethodsSection extends ConsumerWidget {
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Text(
                                   methods[value.toInt()].method,
-                                  style: theme.textTheme.bodySmall,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFFB4388D),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               );
                             },
@@ -1262,9 +1437,12 @@ class _LowStockProducts extends ConsumerWidget {
         productsAsync.when(
           data: (products) {
             if (products.isEmpty) {
-              return Text(
+              return const Text(
                 'All products are well stocked',
-                style: TextStyle(color: theme.colorScheme.outline),
+                style: TextStyle(
+                  color: Color(0xFF2D7A1F),
+                  fontWeight: FontWeight.w600,
+                ),
               );
             }
 
@@ -1275,7 +1453,13 @@ class _LowStockProducts extends ConsumerWidget {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(product.name),
+                        child: Text(
+                          product.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4C4F69),
+                          ),
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -1352,13 +1536,19 @@ class _WasteSummary extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Total Waste Items:',
-                      style: TextStyle(color: theme.colorScheme.outline),
+                      style: TextStyle(
+                        color: Color(0xFF5C5F77),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       '${summary['count']} items',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4C4F69),
+                      ),
                     ),
                   ],
                 ),
@@ -1366,13 +1556,19 @@ class _WasteSummary extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Total Waste Amount:',
-                      style: TextStyle(color: theme.colorScheme.outline),
+                      style: TextStyle(
+                        color: Color(0xFF5C5F77),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       '${(summary['totalAmount'] as double).toStringAsFixed(1)} units',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4C4F69),
+                      ),
                     ),
                   ],
                 ),

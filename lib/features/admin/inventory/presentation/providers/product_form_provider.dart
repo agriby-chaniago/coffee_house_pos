@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
+import 'package:coffee_house_pos/core/models/offline_queue_item_model.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_variant_model.dart';
 import 'package:appwrite/appwrite.dart';
@@ -78,9 +81,29 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
           print('✅ Image uploaded successfully');
           print('   File ID: ${file.$id}');
           print('   Image URL: $imageUrl');
+
+          // Clean up temp file to prevent memory leak
+          try {
+            if (await imageFile.exists()) {
+              await imageFile.delete();
+              print('🗑️ Temp image file cleaned up');
+            }
+          } catch (e) {
+            print('⚠️ Failed to clean up temp file: $e');
+          }
         } catch (e) {
           print('⚠️ Image upload failed: $e');
           print('   Continuing with empty image URL...');
+
+          // Clean up temp file even on upload failure
+          try {
+            if (await imageFile.exists()) {
+              await imageFile.delete();
+              print('🗑️ Temp image file cleaned up (after failed upload)');
+            }
+          } catch (cleanupError) {
+            print('⚠️ Failed to clean up temp file: $cleanupError');
+          }
         }
       } else {
         print('ℹ️ No image provided, using empty string');
@@ -148,14 +171,26 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
         print('  $key: $value');
       });
 
-      await appwrite.databases.createDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollection,
-        documentId: ID.unique(),
-        data: productData,
-      );
+      // Try to create product with offline support
+      try {
+        await appwrite.databases.createDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollection,
+          documentId: ID.unique(),
+          data: productData,
+        );
 
-      print('✅ Product created successfully!');
+        print('✅ Product created successfully!');
+      } catch (createError) {
+        print('⚠️ Offline - Queuing product creation');
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.create,
+          collectionName: AppwriteConfig.productsCollection,
+          data: productData,
+        );
+        print('📥 Product queued for sync when online');
+      }
+
       print('═══════════════════════════════════════════════════════');
 
       state = state.copyWith(isLoading: false, success: true);
@@ -168,9 +203,10 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
       print('Stack Trace: $stackTrace');
       print('═══════════════════════════════════════════════════════');
 
+      final userMessage = ErrorHandler.getUserFriendlyMessage(e);
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: userMessage,
       );
       return false;
     }

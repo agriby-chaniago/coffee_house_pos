@@ -38,7 +38,8 @@ class OrderStatusBadge extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'pending':
         return (
-          const Color(0xFF7C7F93), // gray (Catppuccin overlay0)
+          const Color(
+              0xFFDF8E1D), // orange/yellow (Catppuccin yellow) - better visibility
           Icons.schedule,
           'Pending',
         );

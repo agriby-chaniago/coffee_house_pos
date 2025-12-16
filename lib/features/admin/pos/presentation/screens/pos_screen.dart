@@ -125,6 +125,16 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           ],
         ),
         actions: [
+          // Cart icon (moved from bottom nav)
+          Badge(
+            label: Text(cart.items.length.toString()),
+            isLabelVisible: cart.items.length > 0,
+            child: IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined),
+              tooltip: 'Cart (${cart.items.length} items)',
+              onPressed: () => _showCartBottomSheet(context, theme),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
@@ -177,10 +187,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                         theme: theme,
                       ),
                       _buildNavItem(
-                        icon: Icons.shopping_bag_rounded,
-                        label: 'Cart',
-                        badge: cart.items.length,
-                        onTap: () => _showCartBottomSheet(context, theme),
+                        icon: Icons.add_circle_outline_rounded,
+                        label: 'Toppings',
+                        onTap: () => context.push('/admin/pos/addons'),
                         theme: theme,
                       ),
                       _buildNavItem(

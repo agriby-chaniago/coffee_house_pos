@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
+import 'package:coffee_house_pos/core/models/offline_queue_item_model.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_variant_model.dart';
 import 'package:appwrite/appwrite.dart';
@@ -79,9 +82,29 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
           print('✅ New image uploaded successfully');
           print('   File ID: ${file.$id}');
           print('   Image URL: $imageUrl');
+
+          // Clean up temp file to prevent memory leak
+          try {
+            if (await newImageFile.exists()) {
+              await newImageFile.delete();
+              print('🗑️ Temp image file cleaned up');
+            }
+          } catch (e) {
+            print('⚠️ Failed to clean up temp file: $e');
+          }
         } catch (e) {
           print('⚠️ Image upload failed: $e');
           print('   Keeping existing image URL...');
+
+          // Clean up temp file even on upload failure
+          try {
+            if (await newImageFile.exists()) {
+              await newImageFile.delete();
+              print('🗑️ Temp image file cleaned up (after failed upload)');
+            }
+          } catch (cleanupError) {
+            print('⚠️ Failed to clean up temp file: $cleanupError');
+          }
         }
       }
 
@@ -139,14 +162,25 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
       print('-----------------------------------------------------------');
       print('🔄 Updating product document in AppWrite...');
 
-      await appwrite.databases.updateDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollection,
-        documentId: productId,
-        data: updateData,
-      );
+      // Try to update with offline support
+      try {
+        await appwrite.databases.updateDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollection,
+          documentId: productId,
+          data: updateData,
+        );
+        print('✅ Product updated successfully!');
+      } catch (updateError) {
+        print('⚠️ Offline - Queuing product update');
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.update,
+          collectionName: AppwriteConfig.productsCollection,
+          data: {'documentId': productId, ...updateData},
+        );
+        print('📥 Product update queued for sync when online');
+      }
 
-      print('✅ Product updated successfully!');
       print('═══════════════════════════════════════════════════════');
 
       state = state.copyWith(isLoading: false, success: true);
@@ -159,9 +193,10 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
       print('Stack Trace: $stackTrace');
       print('═══════════════════════════════════════════════════════');
 
+      final userMessage = ErrorHandler.getUserFriendlyMessage(e);
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: userMessage,
       );
       return false;
     }
@@ -198,6 +233,85 @@ class EditProductNotifier extends StateNotifier<EditProductState> {
       print('Error picking image: $e');
       state = state.copyWith(error: 'Failed to pick image: $e');
       return null;
+    }
+  }
+
+  Future<bool> deleteProduct({
+    required String productId,
+    String? imageUrl,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final appwrite = ref.read(appwriteProvider);
+
+      print('═══════════════════════════════════════════════════════');
+      print('🗑️ DELETING PRODUCT');
+      print('═══════════════════════════════════════════════════════');
+      print('Product ID: $productId');
+
+      // Delete product image from storage if exists
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        try {
+          // Extract file ID from URL
+          // URL format: .../files/{fileId}/view?project=...
+          final uri = Uri.parse(imageUrl);
+          final pathSegments = uri.pathSegments;
+          final fileIdIndex = pathSegments.indexOf('files') + 1;
+
+          if (fileIdIndex < pathSegments.length) {
+            final fileId = pathSegments[fileIdIndex];
+            print('📸 Deleting image file: $fileId');
+
+            await appwrite.storage.deleteFile(
+              bucketId: AppwriteConfig.productImagesBucket,
+              fileId: fileId,
+            );
+            print('✅ Image deleted successfully');
+          }
+        } catch (e) {
+          print('⚠️ Failed to delete image: $e');
+          // Continue with product deletion even if image deletion fails
+        }
+      }
+
+      // Delete product document (with offline support)
+      print('🔄 Deleting product document from AppWrite...');
+      try {
+        await appwrite.databases.deleteDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollection,
+          documentId: productId,
+        );
+        print('✅ Product deleted successfully!');
+      } catch (deleteError) {
+        print('⚠️ Offline - Queuing product deletion');
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.delete,
+          collectionName: AppwriteConfig.productsCollection,
+          data: {'documentId': productId},
+        );
+        print('📥 Product deletion queued for sync when online');
+      }
+
+      print('═══════════════════════════════════════════════════════');
+
+      state = state.copyWith(isLoading: false, success: true);
+      return true;
+    } catch (e, stackTrace) {
+      print('═══════════════════════════════════════════════════════');
+      print('❌ ERROR DELETING PRODUCT');
+      print('═══════════════════════════════════════════════════════');
+      print('Error: $e');
+      print('Stack Trace: $stackTrace');
+      print('═══════════════════════════════════════════════════════');
+
+      final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: userMessage,
+      );
+      return false;
     }
   }
 

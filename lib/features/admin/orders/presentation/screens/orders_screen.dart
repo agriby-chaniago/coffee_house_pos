@@ -32,15 +32,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Orders Management'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: () {
-              ref.invalidate(allOrdersProvider);
-            },
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {

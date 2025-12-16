@@ -8,6 +8,7 @@ import 'package:coffee_house_pos/features/customer/menu/data/models/product_mode
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_variant_model.dart';
 import '../providers/edit_product_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../../../pos/presentation/providers/products_provider.dart';
 
 class EditProductScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -89,6 +90,14 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Product'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete Product',
+            onPressed:
+                editState.isLoading ? null : () => _showDeleteDialog(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -362,11 +371,17 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                       ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Required';
+                          return 'Min stock is required';
                         }
                         final num = double.tryParse(value);
-                        if (num == null || num < 0) {
-                          return 'Invalid';
+                        if (num == null) {
+                          return 'Invalid number';
+                        }
+                        if (num < 0) {
+                          return 'Cannot be negative';
+                        }
+                        if (num > 1000000) {
+                          return 'Value too large';
                         }
                         return null;
                       },
@@ -468,11 +483,17 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Required';
+                        return 'Price is required';
                       }
                       final num = double.tryParse(value);
-                      if (num == null || num <= 0) {
-                        return 'Invalid';
+                      if (num == null) {
+                        return 'Invalid number';
+                      }
+                      if (num <= 0) {
+                        return 'Must be greater than 0';
+                      }
+                      if (num > 10000000) {
+                        return 'Price too large';
                       }
                       return null;
                     },
@@ -499,11 +520,17 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Required';
+                        return 'Stock usage is required';
                       }
                       final num = double.tryParse(value);
-                      if (num == null || num <= 0) {
-                        return 'Invalid';
+                      if (num == null) {
+                        return 'Invalid number';
+                      }
+                      if (num <= 0) {
+                        return 'Must be greater than 0';
+                      }
+                      if (num > 100000) {
+                        return 'Value too large';
                       }
                       return null;
                     },
@@ -548,7 +575,9 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
     if (!mounted) return;
 
     if (success) {
+      // Invalidate both inventory and POS products
       ref.invalidate(inventoryProductsProvider);
+      ref.invalidate(productsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -564,6 +593,72 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${error ?? "Unknown error"}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text(
+          'Are you sure you want to delete "${widget.product.name}"?\n\n'
+          'This action cannot be undone and will permanently remove:\n'
+          '• Product information\n'
+          '• Product image\n'
+          '• All associated data',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await _deleteProduct();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteProduct() async {
+    final success = await ref.read(editProductProvider.notifier).deleteProduct(
+          productId: widget.product.id!,
+          imageUrl: widget.product.imageUrl,
+        );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Invalidate both inventory and POS products
+      ref.invalidate(inventoryProductsProvider);
+      ref.invalidate(productsProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Product "${widget.product.name}" deleted successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    } else {
+      final error = ref.read(editProductProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Failed to delete product: ${error ?? "Unknown error"}'),
           backgroundColor: Colors.red,
         ),
       );

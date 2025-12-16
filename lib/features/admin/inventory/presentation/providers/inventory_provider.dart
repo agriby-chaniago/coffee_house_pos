@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 
 final inventoryProductsProvider = FutureProvider<List<Product>>((ref) async {
@@ -27,7 +28,8 @@ final inventoryProductsProvider = FutureProvider<List<Product>>((ref) async {
     return products;
   } catch (e) {
     print('Error fetching products: $e');
-    return [];
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 
@@ -50,11 +52,13 @@ class InventoryFilter {
   }) {
     return InventoryFilter(
       searchQuery: searchQuery ?? this.searchQuery,
-      categoryFilter: categoryFilter == _sentinel ? this.categoryFilter : categoryFilter as String?,
+      categoryFilter: categoryFilter == _sentinel
+          ? this.categoryFilter
+          : categoryFilter as String?,
       showLowStockOnly: showLowStockOnly ?? this.showLowStockOnly,
     );
   }
-  
+
   static const _sentinel = Object();
 }
 

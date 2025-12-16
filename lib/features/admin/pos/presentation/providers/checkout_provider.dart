@@ -5,6 +5,7 @@ import 'package:coffee_house_pos/core/services/appwrite_service.dart';
 import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
 import 'package:coffee_house_pos/core/models/offline_queue_item_model.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/orders/data/models/order_model.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 import 'package:coffee_house_pos/features/admin/inventory/data/models/stock_movement_model.dart';
@@ -53,8 +54,32 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       final cart = ref.read(cartProvider);
       final authState = ref.read(authStateProvider).value;
 
+      // Validate cart
       if (cart.items.isEmpty) {
         throw Exception('Cart is empty');
+      }
+
+      // Validate cash payment
+      if (paymentMethod == PaymentMethod.cash) {
+        if (cashReceived == null) {
+          throw Exception('Cash received amount is required for cash payment');
+        }
+
+        if (cashReceived < 0) {
+          throw Exception('Cash received cannot be negative');
+        }
+
+        if (cashReceived < cart.total) {
+          throw Exception(
+              'Insufficient cash: received Rp ${cashReceived.toStringAsFixed(0)}, '
+              'required Rp ${cart.total.toStringAsFixed(0)}');
+        }
+
+        // Check if cash received is reasonable (not absurdly large)
+        const maxCashAmount = 100000000; // 100 million
+        if (cashReceived > maxCashAmount) {
+          throw Exception('Cash amount too large. Please verify the amount.');
+        }
       }
 
       // Get current user info
@@ -138,9 +163,10 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
 
       return true;
     } catch (e) {
+      final userMessage = ErrorHandler.getUserFriendlyMessage(e);
       state = state.copyWith(
         isLoading: false,
-        error: e,
+        error: userMessage,
       );
       return false;
     }
@@ -209,24 +235,43 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       print('-----------------------------------------------------------');
       print('🔄 Creating document in AppWrite...');
 
-      // Create document in AppWrite
-      final document = await appwrite.databases.createDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.ordersCollection,
-        documentId: ID.unique(),
-        data: orderData,
-      );
+      // Try to create document in AppWrite
+      try {
+        final document = await appwrite.databases.createDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.ordersCollection,
+          documentId: ID.unique(),
+          data: orderData,
+        );
 
-      print('-----------------------------------------------------------');
-      print('✅ SUCCESS! Document created with ID: ${document.$id}');
-      print('═══════════════════════════════════════════════════════');
+        print('-----------------------------------------------------------');
+        print('✅ SUCCESS! Document created with ID: ${document.$id}');
+        print('═══════════════════════════════════════════════════════');
 
-      // Mark as synced in local storage
-      final syncedOrder = order.copyWith(isSynced: true);
-      await _saveOrderToHive(syncedOrder);
+        // Mark as synced in local storage
+        final syncedOrder = order.copyWith(isSynced: true);
+        await _saveOrderToHive(syncedOrder);
+      } catch (syncError) {
+        print('-----------------------------------------------------------');
+        print('⚠️ OFFLINE OR SYNC FAILED - Queuing for later');
+        print('═══════════════════════════════════════════════════════');
+
+        // Queue for offline sync
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.create,
+          collectionName: AppwriteConfig.ordersCollection,
+          data: orderData,
+        );
+
+        print('📥 Order queued for sync when online');
+        print('═══════════════════════════════════════════════════════');
+
+        // Save with isSynced = false
+        await _saveOrderToHive(order);
+      }
     } catch (e, stackTrace) {
       print('═══════════════════════════════════════════════════════');
-      print('❌ ERROR SYNCING TO APPWRITE');
+      print('❌ ERROR IN ORDER PROCESSING');
       print('═══════════════════════════════════════════════════════');
       print('Error Type: ${e.runtimeType}');
       print('Error Message: $e');
@@ -289,19 +334,30 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
           print('⚠️ WARNING: Stock will go negative!');
         }
 
-        // Update product stock in AppWrite
-        await appwrite.databases.updateDocument(
-          databaseId: AppwriteConfig.databaseId,
-          collectionId: AppwriteConfig.productsCollection,
-          documentId: item.productId,
-          data: {
-            'currentStock': newStock,
-          },
-        );
+        // Update product stock in AppWrite (with offline support)
+        try {
+          await appwrite.databases.updateDocument(
+            databaseId: AppwriteConfig.databaseId,
+            collectionId: AppwriteConfig.productsCollection,
+            documentId: item.productId,
+            data: {
+              'currentStock': newStock,
+            },
+          );
+          print('✅ Product stock updated successfully');
+        } catch (updateError) {
+          print('⚠️ Offline - Queuing stock update');
+          await OfflineSyncManager().queueOperation(
+            operationType: OperationType.update,
+            collectionName: AppwriteConfig.productsCollection,
+            data: {
+              'documentId': item.productId,
+              'currentStock': newStock,
+            },
+          );
+        }
 
-        print('✅ Product stock updated successfully');
-
-        // Create stock movement log
+        // Create stock movement log (with offline support)
         try {
           final movement = StockMovement(
             orderId: order.orderNumber,
@@ -315,29 +371,44 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
             timestamp: DateTime.now(),
           );
 
-          await appwrite.databases.createDocument(
-            databaseId: AppwriteConfig.databaseId,
-            collectionId: AppwriteConfig.stockMovementsCollection,
-            documentId: ID.unique(),
-            data: {
-              'orderId': movement.orderId,
-              'orderNumber': movement.orderNumber,
-              'productId': movement.productId,
-              'productName': movement.productName,
-              'amount': movement.amount,
-              'stockUnit': movement.stockUnit,
-              'type': movement.type,
-              'performedBy': movement.performedBy,
-              'timestamp': movement.timestamp.toIso8601String(),
-            },
-          );
-
-          print('✅ Stock movement logged');
+          try {
+            await appwrite.databases.createDocument(
+              databaseId: AppwriteConfig.databaseId,
+              collectionId: AppwriteConfig.stockMovementsCollection,
+              documentId: ID.unique(),
+              data: {
+                'orderId': movement.orderId,
+                'orderNumber': movement.orderNumber,
+                'productId': movement.productId,
+                'productName': movement.productName,
+                'amount': movement.amount,
+                'stockUnit': movement.stockUnit,
+                'type': movement.type,
+                'performedBy': movement.performedBy,
+                'timestamp': movement.timestamp.toIso8601String(),
+              },
+            );
+            print('✅ Stock movement logged');
+          } catch (logError) {
+            print('⚠️ Offline - Queuing stock movement log');
+            await OfflineSyncManager().queueOperation(
+              operationType: OperationType.create,
+              collectionName: AppwriteConfig.stockMovementsCollection,
+              data: {
+                'orderId': movement.orderId,
+                'orderNumber': movement.orderNumber,
+                'productId': movement.productId,
+                'productName': movement.productName,
+                'amount': movement.amount,
+                'stockUnit': movement.stockUnit,
+                'type': movement.type,
+                'performedBy': movement.performedBy,
+                'timestamp': movement.timestamp.toIso8601String(),
+              },
+            );
+          }
         } catch (logError) {
           print('⚠️ Failed to create stock movement log: $logError');
-          print(
-              '   This is likely because stock_movements collection does not exist in AppWrite');
-          print('   Stock was deducted but movement was not logged');
         }
       } catch (e, stackTrace) {
         print('-----------------------------------------------------------');

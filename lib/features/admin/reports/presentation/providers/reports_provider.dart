@@ -2,6 +2,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/orders/data/models/order_model.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 
@@ -142,7 +143,8 @@ final ordersProvider = FutureProvider.autoDispose<List<Order>>((ref) async {
   } catch (e, stackTrace) {
     print('❌ ERROR FETCHING ORDERS: $e');
     print('Stack: $stackTrace');
-    throw Exception('Failed to fetch orders: $e');
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 
@@ -173,7 +175,8 @@ final previousOrdersProvider =
     }).toList();
   } catch (e) {
     print('⚠️ Failed to fetch previous period orders: $e');
-    return [];
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 
@@ -523,7 +526,8 @@ final lowStockProductsProvider =
         .toList();
   } catch (e) {
     print('⚠️ Failed to fetch low stock products: $e');
-    return [];
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 
@@ -561,9 +565,7 @@ final wasteSummaryProvider =
     };
   } catch (e) {
     print('⚠️ Failed to fetch waste summary: $e');
-    return {
-      'count': 0,
-      'totalAmount': 0.0,
-    };
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });

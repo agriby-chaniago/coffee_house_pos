@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
+import 'package:coffee_house_pos/core/models/offline_queue_item_model.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 import 'package:coffee_house_pos/features/admin/inventory/data/models/stock_movement_model.dart';
 import 'package:coffee_house_pos/features/admin/inventory/data/models/waste_log_model.dart';
@@ -104,26 +107,37 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
         timestamp: DateTime.now(),
       );
 
-      await appwrite.databases.createDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.stockMovementsCollection,
-        documentId: ID.unique(),
-        data: {
-          'orderId': movement.orderId,
-          'orderNumber': movement.orderNumber,
-          'productId': movement.productId,
-          'productName': movement.productName,
-          'amount': movement.amount,
-          'stockUnit': movement.stockUnit,
-          'type': movement.type,
-          if (movement.reason != null) 'reason': movement.reason,
-          if (movement.notes != null) 'notes': movement.notes,
-          'performedBy': movement.performedBy,
-          'timestamp': movement.timestamp.toIso8601String(),
-        },
-      );
+      // Create stock movement log with offline support
+      final movementData = {
+        'orderId': movement.orderId,
+        'orderNumber': movement.orderNumber,
+        'productId': movement.productId,
+        'productName': movement.productName,
+        'amount': movement.amount,
+        'stockUnit': movement.stockUnit,
+        'type': movement.type,
+        if (movement.reason != null) 'reason': movement.reason,
+        if (movement.notes != null) 'notes': movement.notes,
+        'performedBy': movement.performedBy,
+        'timestamp': movement.timestamp.toIso8601String(),
+      };
 
-      print('✅ Stock movement logged');
+      try {
+        await appwrite.databases.createDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.stockMovementsCollection,
+          documentId: ID.unique(),
+          data: movementData,
+        );
+        print('✅ Stock movement logged');
+      } catch (logError) {
+        print('⚠️ Offline - Queuing stock movement');
+        await OfflineSyncManager().queueOperation(
+          operationType: OperationType.create,
+          collectionName: AppwriteConfig.stockMovementsCollection,
+          data: movementData,
+        );
+      }
 
       // If waste, also create waste log
       if (adjustmentType == 'waste') {
@@ -164,9 +178,10 @@ class StockAdjustmentNotifier extends StateNotifier<StockAdjustmentState> {
       return true;
     } catch (e) {
       print('❌ Error adjusting stock: $e');
+      final userMessage = ErrorHandler.getUserFriendlyMessage(e);
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: userMessage,
       );
       return false;
     }

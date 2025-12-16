@@ -2,6 +2,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/orders/data/models/order_model.dart';
 
 /// Orders filter model
@@ -40,7 +41,19 @@ class OrdersFilter {
 
 /// Orders filter notifier
 class OrdersFilterNotifier extends StateNotifier<OrdersFilter> {
-  OrdersFilterNotifier() : super(OrdersFilter());
+  OrdersFilterNotifier() : super(_getDefaultFilter());
+
+  static OrdersFilter _getDefaultFilter() {
+    // Default to "Today" - start of today to end of today
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    return OrdersFilter(
+      startDate: startOfToday,
+      endDate: endOfToday,
+    );
+  }
 
   void setStatus(String? status) {
     state = state.copyWith(status: () => status);
@@ -104,7 +117,8 @@ final allOrdersProvider = FutureProvider.autoDispose<List<Order>>((ref) async {
   } catch (e, stackTrace) {
     print('❌ ERROR FETCHING ORDERS: $e');
     print('Stack: $stackTrace');
-    throw Exception('Failed to fetch orders: $e');
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 
@@ -230,6 +244,7 @@ final orderByIdProvider =
     return Order.fromJson({...doc.data, '\$id': doc.$id});
   } catch (e) {
     print('❌ ERROR FETCHING ORDER: $e');
-    throw Exception('Failed to fetch order: $e');
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });

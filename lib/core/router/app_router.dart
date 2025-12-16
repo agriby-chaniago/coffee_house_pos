@@ -14,6 +14,7 @@ import '../../features/admin/orders/presentation/screens/orders_screen.dart';
 import '../../features/admin/orders/presentation/screens/order_detail_screen.dart';
 import '../../features/admin/inventory/presentation/screens/inventory_screen.dart';
 import '../../features/admin/inventory/presentation/screens/waste_logs_screen.dart';
+import '../../features/admin/inventory/presentation/screens/addon_management_screen.dart';
 import '../../features/admin/reports/presentation/screens/reports_screen.dart';
 import '../../features/admin/settings/presentation/screens/settings_screen.dart';
 
@@ -123,6 +124,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const WasteLogsScreen(),
               ),
             ],
+          ),
+          GoRoute(
+            path: 'addons',
+            builder: (context, state) => const AddOnManagementScreen(),
           ),
           GoRoute(
             path: 'reports',

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/services/appwrite_service.dart';
 import '../../../../../core/services/hive_service.dart';
 import '../../../../../core/config/appwrite_config.dart';
+import '../../../../../core/utils/error_handler.dart';
 import '../../../../customer/menu/data/models/product_model.dart';
 
 final productsProvider = FutureProvider<List<Product>>((ref) async {
@@ -60,8 +61,8 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
       return cachedProducts;
     }
 
-    // If no cache and AppWrite failed, return empty list
-    print('No cached products found. Returning empty list.');
+    // No cache available, throw user-friendly error
+    print('No cached products found.');
     print('');
     print('=== TROUBLESHOOTING ===');
     print('1. Check if database "coffee_house_db" exists in AppWrite Console');
@@ -71,7 +72,8 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
     print('4. Check AppWrite Console > Database > Copy Database ID');
     print('=======================');
 
-    return [];
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/core/services/appwrite_service.dart';
+import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/admin/inventory/data/models/waste_log_model.dart';
 import 'package:appwrite/appwrite.dart';
 
@@ -61,7 +62,8 @@ final wasteLogsProvider = FutureProvider<List<WasteLog>>((ref) async {
     print('Error: $e');
     print('Stack trace: $stackTrace');
     print('═══════════════════════════════════════════════════════');
-    rethrow;
+    final userMessage = ErrorHandler.getUserFriendlyMessage(e);
+    throw Exception(userMessage);
   }
 });
 

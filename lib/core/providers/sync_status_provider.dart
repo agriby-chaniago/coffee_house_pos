@@ -4,7 +4,11 @@ import 'package:coffee_house_pos/core/services/offline_sync_manager.dart';
 
 // Connectivity status stream
 final connectivityStreamProvider = StreamProvider<ConnectivityResult>((ref) {
-  return Connectivity().onConnectivityChanged;
+  final connectivity = Connectivity();
+
+  // StreamProvider automatically handles disposal
+  // The stream will be closed when the provider is disposed
+  return connectivity.onConnectivityChanged;
 });
 
 // Sync status stream provider
