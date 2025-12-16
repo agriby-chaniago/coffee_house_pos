@@ -57,43 +57,59 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image picker
+              // Image picker - simple
               Center(
                 child: GestureDetector(
                   onTap: formState.isLoading ? null : _pickImage,
                   child: Container(
-                    width: 200,
-                    height: 200,
+                    width: 150,
+                    height: 150,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: theme.colorScheme.outline,
-                        width: 2,
-                        style: BorderStyle.solid,
+                        color: theme.colorScheme.outlineVariant,
                       ),
                     ),
                     child: _selectedImage != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              _selectedImage!,
-                              fit: BoxFit.cover,
-                            ),
+                        ? Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(11),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  color: theme.colorScheme.error,
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedImage = null;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.add_photo_alternate,
-                                size: 48,
-                                color: theme.colorScheme.outline,
+                                size: 40,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Add Photo (Optional)',
+                                'Add Photo',
                                 style: TextStyle(
-                                  color: theme.colorScheme.outline,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -105,15 +121,14 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               const SizedBox(height: 24),
 
               // Product name
-              Text('Product Name', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
+                  labelText: 'Product Name',
+                  hintText: 'e.g. Caffe Latte',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  hintText: 'e.g. Caffe Latte',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -126,15 +141,14 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               const SizedBox(height: 16),
 
               // Description
-              Text('Description', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Product description...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  hintText: 'Product description...',
                 ),
                 maxLines: 3,
                 validator: (value) {
@@ -148,11 +162,10 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               const SizedBox(height: 16),
 
               // Category
-              Text('Category', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategory,
                 decoration: InputDecoration(
+                  labelText: 'Category',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -177,47 +190,48 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               // Variants section
               Text(
                 'Product Variants',
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
 
               // Size M
-              _buildVariantSection(
+              _buildVariantCard(
                 theme: theme,
                 size: 'M',
                 priceController: _priceMController,
                 stockUsageController: _stockUsageMController,
+                stockUnit: _selectedStockUnit,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Size L
-              _buildVariantSection(
+              _buildVariantCard(
                 theme: theme,
                 size: 'L',
                 priceController: _priceLController,
                 stockUsageController: _stockUsageLController,
+                stockUnit: _selectedStockUnit,
               ),
 
               const SizedBox(height: 24),
 
-              // Stock section
+              // Stock Management
               Text(
                 'Stock Management',
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
 
               // Stock unit
-              Text('Stock Unit', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _selectedStockUnit,
                 decoration: InputDecoration(
+                  labelText: 'Stock Unit',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -243,73 +257,64 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Initial Stock',
-                            style: theme.textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _initialStockController,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            suffixText: _selectedStockUnit,
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+\.?\d{0,2}')),
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Required';
-                            }
-                            final num = double.tryParse(value);
-                            if (num == null || num < 0) {
-                              return 'Invalid';
-                            }
-                            return null;
-                          },
+                    child: TextFormField(
+                      controller: _initialStockController,
+                      decoration: InputDecoration(
+                        labelText: 'Initial Stock',
+                        suffixText: _selectedStockUnit,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'),
                         ),
                       ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        final num = double.tryParse(value);
+                        if (num == null || num < 0) {
+                          return 'Invalid';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Min Stock', style: theme.textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _minStockController,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            suffixText: _selectedStockUnit,
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+\.?\d{0,2}')),
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Required';
-                            }
-                            final num = double.tryParse(value);
-                            if (num == null || num < 0) {
-                              return 'Invalid';
-                            }
-                            return null;
-                          },
+                    child: TextFormField(
+                      controller: _minStockController,
+                      decoration: InputDecoration(
+                        labelText: 'Min Stock',
+                        suffixText: _selectedStockUnit,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'),
                         ),
                       ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        final num = double.tryParse(value);
+                        if (num == null || num < 0) {
+                          return 'Invalid';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ],
@@ -320,7 +325,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
               // Submit button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 50,
                 child: FilledButton.icon(
                   onPressed: formState.isLoading ? null : _submitForm,
                   icon: formState.isLoading
@@ -335,10 +340,11 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       : const Icon(Icons.check),
                   label: Text(
                     formState.isLoading ? 'Creating...' : 'Create Product',
-                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -346,11 +352,12 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     );
   }
 
-  Widget _buildVariantSection({
+  Widget _buildVariantCard({
     required ThemeData theme,
     required String size,
     required TextEditingController priceController,
     required TextEditingController stockUsageController,
+    required String stockUnit,
   }) {
     return Card(
       child: Padding(
@@ -360,7 +367,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           children: [
             Text(
               'Size $size',
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -368,72 +375,64 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Price (IDR)', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: priceController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          prefixText: 'Rp ',
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Required';
-                          }
-                          final num = double.tryParse(value);
-                          if (num == null || num <= 0) {
-                            return 'Invalid';
-                          }
-                          return null;
-                        },
+                  child: TextFormField(
+                    controller: priceController,
+                    decoration: InputDecoration(
+                      labelText: 'Price',
+                      prefixText: 'Rp ',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
                       ),
                     ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Required';
+                      }
+                      final num = double.tryParse(value);
+                      if (num == null || num <= 0) {
+                        return 'Invalid';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Stock Usage', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: stockUsageController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          suffixText: _selectedStockUnit,
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Required';
-                          }
-                          final num = double.tryParse(value);
-                          if (num == null || num <= 0) {
-                            return 'Invalid';
-                          }
-                          return null;
-                        },
+                  child: TextFormField(
+                    controller: stockUsageController,
+                    decoration: InputDecoration(
+                      labelText: 'Stock Usage',
+                      suffixText: stockUnit,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
                       ),
                     ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Required';
+                      }
+                      final num = double.tryParse(value);
+                      if (num == null || num <= 0) {
+                        return 'Invalid';
+                      }
+                      return null;
+                    },
                   ),
                 ),
               ],
@@ -468,18 +467,18 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       stockUnit: _selectedStockUnit,
       initialStock: double.parse(_initialStockController.text),
       minStock: double.parse(_minStockController.text),
-      availableAddOnIds: [], // TODO: Add addon selector if needed
+      availableAddOnIds: [],
     );
 
     if (!mounted) return;
 
     if (success) {
-      // Refresh inventory list
       ref.invalidate(inventoryProductsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Product created: ${_nameController.text}'),
+          content:
+              Text('Product "${_nameController.text}" created successfully!'),
           backgroundColor: Colors.green,
         ),
       );

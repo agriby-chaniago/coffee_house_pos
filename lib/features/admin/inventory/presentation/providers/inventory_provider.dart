@@ -45,15 +45,17 @@ class InventoryFilter {
 
   InventoryFilter copyWith({
     String? searchQuery,
-    String? categoryFilter,
+    Object? categoryFilter = _sentinel,
     bool? showLowStockOnly,
   }) {
     return InventoryFilter(
       searchQuery: searchQuery ?? this.searchQuery,
-      categoryFilter: categoryFilter ?? this.categoryFilter,
+      categoryFilter: categoryFilter == _sentinel ? this.categoryFilter : categoryFilter as String?,
       showLowStockOnly: showLowStockOnly ?? this.showLowStockOnly,
     );
   }
+  
+  static const _sentinel = Object();
 }
 
 class InventoryFilterNotifier extends StateNotifier<InventoryFilter> {

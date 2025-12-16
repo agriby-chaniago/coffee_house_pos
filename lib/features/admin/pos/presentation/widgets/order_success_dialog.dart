@@ -24,6 +24,10 @@ class OrderSuccessDialog extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Container(
         width: 450,
         constraints: const BoxConstraints(maxHeight: 700),
@@ -32,30 +36,42 @@ class OrderSuccessDialog extends ConsumerWidget {
           children: [
             // Success icon
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-              ),
+              padding: const EdgeInsets.only(
+                  top: 40, left: 32, right: 32, bottom: 10),
               child: Column(
                 children: [
                   Icon(
-                    Icons.check_circle,
+                    Icons.check_circle_rounded,
                     size: 80,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Text(
                     'Order Completed!',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimaryContainer,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Order #${order.orderNumber}',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      'Order #${order.orderNumber}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -69,121 +85,196 @@ class OrderSuccessDialog extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInfoRow(
-                      'Date',
-                      DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt),
-                      theme,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow('Cashier', order.cashierName, theme),
-                    if (order.customerName != null) ...[
-                      const SizedBox(height: 8),
-                      _buildInfoRow('Customer', order.customerName!, theme),
-                    ],
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      'Payment',
-                      (order.paymentMethod ?? 'cash').toUpperCase(),
-                      theme,
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 16),
-
-                    // Order summary
-                    Text(
-                      'Order Summary',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    // Info cards
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              theme.colorScheme.outlineVariant.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildInfoRow(
+                            'Date',
+                            DateFormat('dd MMM yyyy, HH:mm')
+                                .format(order.createdAt),
+                            theme,
+                          ),
+                          const Divider(height: 20),
+                          _buildInfoRow('Cashier', order.cashierName, theme),
+                          if (order.customerName != null) ...[
+                            const Divider(height: 20),
+                            _buildInfoRow(
+                                'Customer', order.customerName!, theme),
+                          ],
+                          const Divider(height: 20),
+                          _buildInfoRow(
+                            'Payment',
+                            (order.paymentMethod ?? 'cash').toUpperCase(),
+                            theme,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ...order.items.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${item.productName} (${item.selectedSize})',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  formatCurrency(item.itemTotal),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${item.quantity} x ${formatCurrency(item.basePrice)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.outline,
-                              ),
-                            ),
-                            if (item.addOns.isNotEmpty)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, top: 4),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: item.addOns.map((addon) {
-                                    return Text(
-                                      '+ ${addon.name} (${formatCurrency(addon.additionalPrice)})',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: theme.colorScheme.outline,
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const Divider(),
-                    const SizedBox(height: 12),
-                    _buildSummaryRow(
-                      'Subtotal',
-                      formatCurrency(order.subtotal),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSummaryRow(
-                      'PPN 11%',
-                      formatCurrency(order.taxAmount),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
+
+                    // Order summary
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Icon(
+                          Icons.receipt_long_rounded,
+                          size: 20,
+                          color: theme.colorScheme.primary,
                         ),
+                        const SizedBox(width: 8),
                         Text(
-                          formatCurrency(order.total),
-                          style: const TextStyle(
-                            fontSize: 18,
+                          'Order Summary',
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              theme.colorScheme.outlineVariant.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          ...order.items.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            return Column(
+                              children: [
+                                if (index > 0) const Divider(height: 24),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            '${item.productName} (${item.selectedSize})',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          formatCurrency(item.itemTotal),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${item.quantity} x ${formatCurrency(item.basePrice)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    if (item.addOns.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 16, top: 6),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: item.addOns.map((addon) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 2),
+                                              child: Text(
+                                                '+ ${addon.name} (${formatCurrency(addon.additionalPrice)})',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: theme.colorScheme
+                                                      .onSurfaceVariant,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primaryContainer.withOpacity(0.3),
+                            theme.colorScheme.secondaryContainer
+                                .withOpacity(0.2),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSummaryRow(
+                            'Subtotal',
+                            formatCurrency(order.subtotal),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildSummaryRow(
+                            'PPN 11%',
+                            formatCurrency(order.taxAmount),
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                formatCurrency(order.total),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -192,10 +283,12 @@ class OrderSuccessDialog extends ConsumerWidget {
 
             // Actions
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: theme.dividerColor),
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
               ),
               child: Column(
@@ -218,11 +311,23 @@ class OrderSuccessDialog extends ConsumerWidget {
                               }
                             }
                           },
-                          icon: const Icon(Icons.print),
-                          label: const Text('Print'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.print_rounded, size: 20),
+                          label: const Text(
+                            'Print',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
@@ -239,20 +344,44 @@ class OrderSuccessDialog extends ConsumerWidget {
                               }
                             }
                           },
-                          icon: const Icon(Icons.share),
-                          label: const Text('Share'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.share_rounded, size: 20),
+                          label: const Text(
+                            'Share',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
+                    height: 52,
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Done'),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -271,8 +400,9 @@ class OrderSuccessDialog extends ConsumerWidget {
         Text(
           label,
           style: TextStyle(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
             fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
         ),
         Text(

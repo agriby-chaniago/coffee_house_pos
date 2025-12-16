@@ -7,6 +7,12 @@ final connectivityStreamProvider = StreamProvider<ConnectivityResult>((ref) {
   return Connectivity().onConnectivityChanged;
 });
 
+// Sync status stream provider
+final syncStatusStreamProvider = StreamProvider<void>((ref) {
+  final syncManager = ref.watch(syncManagerProvider);
+  return syncManager.statusStream;
+});
+
 // Sync state
 enum SyncState {
   idle,
@@ -108,9 +114,27 @@ final syncManagerProvider = Provider<OfflineSyncManager>((ref) {
   return OfflineSyncManager();
 });
 
-// Sync status provider
+// Sync status provider with auto-refresh
 final syncStatusProvider =
     StateNotifierProvider<SyncStatusNotifier, SyncStatus>((ref) {
   final syncManager = ref.watch(syncManagerProvider);
-  return SyncStatusNotifier(syncManager);
+  final notifier = SyncStatusNotifier(syncManager);
+
+  // Initial refresh to get current state
+  Future.microtask(() => notifier.refreshStatus());
+
+  // Listen to status stream and refresh automatically
+  ref.listen(syncStatusStreamProvider, (previous, next) {
+    notifier.refreshStatus();
+  });
+
+  // Also listen to connectivity changes
+  ref.listen(connectivityStreamProvider, (previous, next) {
+    next.whenData((connectivity) {
+      notifier.updateConnectivity(connectivity != ConnectivityResult.none);
+      notifier.refreshStatus();
+    });
+  });
+
+  return notifier;
 });

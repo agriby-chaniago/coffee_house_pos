@@ -39,17 +39,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         AuthStateUnauthenticated() => isLoginRoute ? null : '/login',
         AuthStateUnverified() => isVerifyRoute ? null : '/verify-email',
         AuthStateAuthenticated(:final role) => () {
-            // Already on correct route, don't redirect
-            if (!isLoginRoute && !isVerifyRoute && !isSplashRoute) {
-              return null;
+            // If on login/verify/splash, redirect to main app
+            if (isLoginRoute || isVerifyRoute || isSplashRoute) {
+              // Redirect based on role
+              if (role?.toLowerCase() == 'admin') {
+                return '/admin/pos';
+              } else {
+                return '/customer/menu';
+              }
             }
 
-            // Redirect based on role
-            if (role?.toLowerCase() == 'admin') {
-              return '/admin/pos';
-            } else {
-              return '/customer/menu';
-            }
+            // Already on correct route, don't redirect
+            return null;
           }(),
         AuthStateError() => isLoginRoute ? null : '/login',
       };
@@ -97,22 +98,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/pos',
         builder: (context, state) => const PosScreen(),
-      ),
-      GoRoute(
-        path: '/admin/inventory',
-        builder: (context, state) => const InventoryScreen(),
-      ),
-      GoRoute(
-        path: '/admin/inventory/waste-logs',
-        builder: (context, state) => const WasteLogsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/reports',
-        builder: (context, state) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: '/admin/settings',
-        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'inventory',
+            builder: (context, state) => const InventoryScreen(),
+            routes: [
+              GoRoute(
+                path: 'waste-logs',
+                builder: (context, state) => const WasteLogsScreen(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'reports',
+            builder: (context, state) => const ReportsScreen(),
+          ),
+          GoRoute(
+            path: 'settings',
+            builder: (context, state) => const SettingsScreen(),
+          ),
+        ],
       ),
     ],
   );

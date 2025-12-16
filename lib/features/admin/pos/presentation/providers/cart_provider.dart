@@ -120,12 +120,16 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   void removeItem(int index) {
+    if (index < 0 || index >= state.items.length) return;
+
     final items = [...state.items];
     items.removeAt(index);
     state = CartState.calculate(items);
   }
 
   void updateQuantity(int index, int quantity) {
+    if (index < 0 || index >= state.items.length) return;
+
     if (quantity <= 0) {
       removeItem(index);
       return;
@@ -137,12 +141,16 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   void incrementQuantity(int index) {
+    if (index < 0 || index >= state.items.length) return;
+
     final items = [...state.items];
     items[index] = items[index].copyWith(quantity: items[index].quantity + 1);
     state = CartState.calculate(items);
   }
 
   void decrementQuantity(int index) {
+    if (index < 0 || index >= state.items.length) return;
+
     final items = [...state.items];
     final currentQuantity = items[index].quantity;
 
@@ -156,6 +164,8 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   void updateNotes(int index, String notes) {
+    if (index < 0 || index >= state.items.length) return;
+
     final items = [...state.items];
     items[index] = items[index].copyWith(notes: notes);
     state = CartState.calculate(items);

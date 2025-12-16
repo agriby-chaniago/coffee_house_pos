@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/core/constants/app_constants.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
@@ -59,18 +60,13 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Product selector
-                  Text(
-                    'Product',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
                   DropdownButtonFormField<Product>(
                     initialValue: _selectedProduct,
                     decoration: InputDecoration(
+                      labelText: 'Product',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      prefixIcon: const Icon(Icons.inventory_2),
                     ),
                     hint: const Text('Select product'),
                     items: products.map((product) {
@@ -99,9 +95,11 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                   // Adjustment type
                   Text(
                     'Adjustment Type',
-                    style: theme.textTheme.titleMedium,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   SegmentedButton<String>(
                     segments: const [
                       ButtonSegment(
@@ -131,28 +129,67 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Current stock info card
+                  if (_selectedProduct != null)
+                    Card(
+                      color:
+                          theme.colorScheme.primaryContainer.withOpacity(0.3),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Current Stock',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_selectedProduct!.currentStock.toStringAsFixed(1)} ${_selectedProduct!.stockUnit}',
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  if (_selectedProduct != null) const SizedBox(height: 24),
+
                   // Amount
-                  Text(
-                    _adjustmentType == 'adjustment'
-                        ? 'New Stock Amount'
-                        : 'Amount',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _amountController,
                     decoration: InputDecoration(
+                      labelText: _adjustmentType == 'adjustment'
+                          ? 'New Stock Amount'
+                          : 'Amount',
+                      suffixText: _selectedProduct?.stockUnit ?? '',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      prefixIcon: const Icon(Icons.numbers),
-                      suffixText: _selectedProduct?.stockUnit ?? '',
-                      helperText: _selectedProduct != null
-                          ? 'Current: ${_selectedProduct!.currentStock.toStringAsFixed(1)} ${_selectedProduct!.stockUnit}'
-                          : null,
                     ),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
+                    ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter amount';
@@ -169,18 +206,13 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
 
                   // Waste reason (only for waste type)
                   if (_adjustmentType == 'waste') ...[
-                    Text(
-                      'Waste Reason',
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       initialValue: _wasteReason,
                       decoration: InputDecoration(
+                        labelText: 'Waste Reason',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        prefixIcon: const Icon(Icons.error_outline),
                       ),
                       hint: const Text('Select reason'),
                       items: WasteReason.values.map((reason) {
@@ -205,19 +237,14 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                   ],
 
                   // Notes
-                  Text(
-                    'Notes (Optional)',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _notesController,
                     decoration: InputDecoration(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Add additional notes...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      prefixIcon: const Icon(Icons.note),
-                      hintText: 'Add additional notes...',
                     ),
                     maxLines: 3,
                   ),
@@ -227,7 +254,7 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                   // Submit button
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
+                    height: 50,
                     child: FilledButton.icon(
                       onPressed: adjustmentState.isLoading
                           ? null
@@ -246,10 +273,11 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
                         adjustmentState.isLoading
                             ? 'Processing...'
                             : 'Submit Adjustment',
-                        style: const TextStyle(fontSize: 16),
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -257,7 +285,18 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text('Error loading products: $error'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text('Error loading products: $error'),
+            ],
+          ),
         ),
       ),
     );
@@ -292,7 +331,6 @@ class _StockAdjustmentScreenState extends ConsumerState<StockAdjustmentScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Refresh inventory
       ref.invalidate(inventoryProductsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(

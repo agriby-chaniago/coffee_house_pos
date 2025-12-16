@@ -10,23 +10,36 @@ String formatCurrency(double amount) {
 }
 
 class CartItemWidget extends ConsumerWidget {
-  final CartItem item;
   final int index;
 
   const CartItemWidget({
     super.key,
-    required this.item,
     required this.index,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final cart = ref.watch(cartProvider);
+
+    // Get item from current cart state to ensure we always have the latest data
+    if (index < 0 || index >= cart.items.length) {
+      return const SizedBox.shrink();
+    }
+
+    final item = cart.items[index];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,110 +54,152 @@ class CartItemWidget extends ConsumerWidget {
                         item.productName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         item.variantName,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: theme.textTheme.bodySmall?.color,
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       if (item.addons.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         ...item.addons.map((addon) => Padding(
-                              padding: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.only(top: 3),
                               child: Text(
                                 '+ ${addon.name}',
                                 style: TextStyle(
-                                  fontSize: 11,
-                                  color: theme.textTheme.bodySmall?.color,
+                                  fontSize: 12,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             )),
                       ],
                       if (item.notes != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Note: ${item.notes}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontStyle: FontStyle.italic,
-                            color: theme.colorScheme.primary,
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer
+                                .withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Note: ${item.notes}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: () {
-                    ref.read(cartProvider.notifier).removeItem(index);
-                  },
-                  constraints: const BoxConstraints(),
-                  padding: EdgeInsets.zero,
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.errorContainer.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      size: 20,
+                      color: theme.colorScheme.error,
+                    ),
+                    onPressed: () {
+                      print('Delete tapped for index: $index');
+                      ref.read(cartProvider.notifier).removeItem(index);
+                    },
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Quantity controls
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: () {
-                        ref
-                            .read(cartProvider.notifier)
-                            .decrementQuantity(index);
-                      },
-                      iconSize: 20,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        item.quantity.toString(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          print(
+                              'Decrement tapped for index: $index, current quantity: ${item.quantity}');
+                          ref
+                              .read(cartProvider.notifier)
+                              .decrementQuantity(index);
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.remove_rounded,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () {
-                        ref
-                            .read(cartProvider.notifier)
-                            .incrementQuantity(index);
-                      },
-                      iconSize: 20,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                    ),
-                  ],
+                      Container(
+                        constraints: const BoxConstraints(minWidth: 32),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          item.quantity.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          print(
+                              'Increment tapped for index: $index, current quantity: ${item.quantity}');
+                          ref
+                              .read(cartProvider.notifier)
+                              .incrementQuantity(index);
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.add_rounded,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 // Item total
                 Text(
                   formatCurrency(item.itemTotal),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
                     color: theme.colorScheme.primary,
                   ),
                 ),

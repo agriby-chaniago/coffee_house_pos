@@ -16,6 +16,10 @@ class OfflineSyncManager {
   Timer? _syncTimer;
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
 
+  // Status stream controller
+  final _statusController = StreamController<void>.broadcast();
+  Stream<void> get statusStream => _statusController.stream;
+
   bool _isSyncing = false;
   bool _isOnline = false;
 
@@ -42,6 +46,7 @@ class OfflineSyncManager {
     final connectivityResult = await _connectivity.checkConnectivity();
     _isOnline = connectivityResult != ConnectivityResult.none;
     print('📡 Initial connectivity: ${_isOnline ? "Online" : "Offline"}');
+    _statusController.add(null); // Emit initial status
 
     // Listen to connectivity changes
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
@@ -49,6 +54,7 @@ class OfflineSyncManager {
         final wasOffline = !_isOnline;
         _isOnline = result != ConnectivityResult.none;
         print('📡 Connectivity changed: ${_isOnline ? "Online" : "Offline"}');
+        _statusController.add(null); // Emit status change
 
         // If just came online, trigger sync
         if (wasOffline && _isOnline) {
@@ -177,6 +183,7 @@ class OfflineSyncManager {
     print('═══════════════════════════════════════════════════════');
 
     _isSyncing = false;
+    _statusController.add(null); // Emit status change after sync
   }
 
   // Process a single queue item

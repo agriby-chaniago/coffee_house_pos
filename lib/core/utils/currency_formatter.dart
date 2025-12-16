@@ -29,4 +29,16 @@ class CurrencyFormatter {
 
     return double.tryParse(cleaned) ?? 0.0;
   }
+
+  /// Format amount to compact IDR (e.g., 1000000 -> "Rp 1M")
+  static String formatCompact(double amount) {
+    if (amount >= 1000000000) {
+      return 'Rp ${(amount / 1000000000).toStringAsFixed(1)}B';
+    } else if (amount >= 1000000) {
+      return 'Rp ${(amount / 1000000).toStringAsFixed(1)}M';
+    } else if (amount >= 1000) {
+      return 'Rp ${(amount / 1000).toStringAsFixed(1)}K';
+    }
+    return 'Rp ${amount.toStringAsFixed(0)}';
+  }
 }
