@@ -69,7 +69,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
       // Generate order number: YYYYMMDD-###
       final orderNumber = await _generateOrderNumber();
 
-      // Create order
+      // Create order with pending status (will be updated as order is prepared)
+      final now = DateTime.now();
       final order = Order(
         orderNumber: orderNumber,
         customerId: null,
@@ -79,13 +80,14 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         taxAmount: cart.taxAmount,
         taxRate: AppConstants.ppnRate,
         total: cart.total,
-        status: OrderStatus.completed.name,
+        status: OrderStatus.pending.name,
         paymentMethod: paymentMethod.name,
         cashierId: cashierId,
         cashierName: cashierName,
-        createdAt: DateTime.now(),
-        completedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: now,
+        completedAt:
+            null, // Will be set when order status is updated to completed
+        updatedAt: now,
         isSynced: false,
       );
 

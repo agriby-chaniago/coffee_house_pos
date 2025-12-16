@@ -6,6 +6,7 @@ import '../providers/inventory_provider.dart';
 import 'stock_adjustment_screen.dart';
 import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
+import 'package:coffee_house_pos/features/admin/pos/presentation/providers/cart_provider.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -69,7 +70,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         children: [
           // Summary Statistics
           allProductsAsync.when(
-            data: (allProducts) => _buildSummaryCards(theme, allProducts),
+            data: (allProducts) => Column(
+              children: [
+                _buildSummaryCards(theme, allProducts),
+                // Low Stock Alert Banner
+                _buildLowStockAlert(theme, allProducts),
+              ],
+            ),
             loading: () => _buildSummaryCardsLoading(theme),
             error: (_, __) => const SizedBox.shrink(),
           ),
@@ -191,6 +198,140 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Product'),
         elevation: 4,
+      ),
+      bottomNavigationBar: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 600) return const SizedBox.shrink();
+          return Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(
+                      icon: Icons.point_of_sale_rounded,
+                      label: 'POS',
+                      onTap: () => context.go('/admin/pos'),
+                      theme: theme,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.shopping_bag_rounded,
+                      label: 'Cart',
+                      badge: ref.watch(cartProvider).items.length,
+                      onTap: () {},
+                      theme: theme,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.receipt_long_rounded,
+                      label: 'Orders',
+                      onTap: () => context.go('/admin/pos/orders'),
+                      theme: theme,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.inventory_2_rounded,
+                      label: 'Stock',
+                      isActive: true,
+                      onTap: () => context.go('/admin/pos/inventory'),
+                      theme: theme,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.bar_chart_rounded,
+                      label: 'Reports',
+                      onTap: () => context.go('/admin/pos/reports'),
+                      theme: theme,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required ThemeData theme,
+    bool isActive = false,
+    int badge = 0,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isActive
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                      size: 26,
+                    ),
+                    if (badge > 0)
+                      Positioned(
+                        right: -8,
+                        top: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.error,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          child: Text(
+                            badge > 99 ? '99+' : '$badge',
+                            style: TextStyle(
+                              color: theme.colorScheme.onError,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    color: isActive
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -367,6 +508,76 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               color: theme.colorScheme.onSurface.withOpacity(0.1),
               borderRadius: BorderRadius.circular(4),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLowStockAlert(ThemeData theme, List<Product> products) {
+    final lowStockProducts =
+        products.where((p) => p.currentStock <= p.minStock).toList();
+
+    if (lowStockProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFE640B).withOpacity(0.1), // orange bg
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFE640B).withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFE640B).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.warning_rounded,
+              color: Color(0xFFFE640B),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Low Stock Alert',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFDD7878), // red
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${lowStockProducts.length} product${lowStockProducts.length > 1 ? 's' : ''} running low on stock',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(inventoryFilterProvider.notifier).toggleLowStockFilter();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFE640B),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text('View'),
           ),
         ],
       ),

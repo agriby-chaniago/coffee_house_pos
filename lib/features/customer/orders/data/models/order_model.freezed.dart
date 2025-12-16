@@ -33,6 +33,9 @@ mixin _$Order {
   String get cashierName => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get completedAt => throw _privateConstructorUsedError;
+  DateTime? get cancelledAt => throw _privateConstructorUsedError;
+  String? get cancellationReason => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
   bool get isSynced => throw _privateConstructorUsedError;
 
@@ -61,6 +64,9 @@ abstract class $OrderCopyWith<$Res> {
       String cashierName,
       DateTime createdAt,
       DateTime? completedAt,
+      DateTime? cancelledAt,
+      String? cancellationReason,
+      String? notes,
       DateTime updatedAt,
       bool isSynced});
 }
@@ -93,6 +99,9 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
     Object? cashierName = null,
     Object? createdAt = null,
     Object? completedAt = freezed,
+    Object? cancelledAt = freezed,
+    Object? cancellationReason = freezed,
+    Object? notes = freezed,
     Object? updatedAt = null,
     Object? isSynced = null,
   }) {
@@ -157,6 +166,18 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      cancelledAt: freezed == cancelledAt
+          ? _value.cancelledAt
+          : cancelledAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      cancellationReason: freezed == cancellationReason
+          ? _value.cancellationReason
+          : cancellationReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as String?,
       updatedAt: null == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -192,6 +213,9 @@ abstract class _$$OrderImplCopyWith<$Res> implements $OrderCopyWith<$Res> {
       String cashierName,
       DateTime createdAt,
       DateTime? completedAt,
+      DateTime? cancelledAt,
+      String? cancellationReason,
+      String? notes,
       DateTime updatedAt,
       bool isSynced});
 }
@@ -222,6 +246,9 @@ class __$$OrderImplCopyWithImpl<$Res>
     Object? cashierName = null,
     Object? createdAt = null,
     Object? completedAt = freezed,
+    Object? cancelledAt = freezed,
+    Object? cancellationReason = freezed,
+    Object? notes = freezed,
     Object? updatedAt = null,
     Object? isSynced = null,
   }) {
@@ -286,6 +313,18 @@ class __$$OrderImplCopyWithImpl<$Res>
           ? _value.completedAt
           : completedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      cancelledAt: freezed == cancelledAt
+          ? _value.cancelledAt
+          : cancelledAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      cancellationReason: freezed == cancellationReason
+          ? _value.cancellationReason
+          : cancellationReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notes: freezed == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as String?,
       updatedAt: null == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -317,6 +356,9 @@ class _$OrderImpl extends _Order {
       required this.cashierName,
       required this.createdAt,
       this.completedAt,
+      this.cancelledAt,
+      this.cancellationReason,
+      this.notes,
       required this.updatedAt,
       this.isSynced = false})
       : _items = items,
@@ -361,6 +403,12 @@ class _$OrderImpl extends _Order {
   @override
   final DateTime? completedAt;
   @override
+  final DateTime? cancelledAt;
+  @override
+  final String? cancellationReason;
+  @override
+  final String? notes;
+  @override
   final DateTime updatedAt;
   @override
   @JsonKey()
@@ -368,7 +416,7 @@ class _$OrderImpl extends _Order {
 
   @override
   String toString() {
-    return 'Order(id: $id, orderNumber: $orderNumber, customerId: $customerId, customerName: $customerName, items: $items, subtotal: $subtotal, taxAmount: $taxAmount, taxRate: $taxRate, total: $total, status: $status, paymentMethod: $paymentMethod, cashierId: $cashierId, cashierName: $cashierName, createdAt: $createdAt, completedAt: $completedAt, updatedAt: $updatedAt, isSynced: $isSynced)';
+    return 'Order(id: $id, orderNumber: $orderNumber, customerId: $customerId, customerName: $customerName, items: $items, subtotal: $subtotal, taxAmount: $taxAmount, taxRate: $taxRate, total: $total, status: $status, paymentMethod: $paymentMethod, cashierId: $cashierId, cashierName: $cashierName, createdAt: $createdAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason, notes: $notes, updatedAt: $updatedAt, isSynced: $isSynced)';
   }
 
   @override
@@ -401,6 +449,11 @@ class _$OrderImpl extends _Order {
                 other.createdAt == createdAt) &&
             (identical(other.completedAt, completedAt) ||
                 other.completedAt == completedAt) &&
+            (identical(other.cancelledAt, cancelledAt) ||
+                other.cancelledAt == cancelledAt) &&
+            (identical(other.cancellationReason, cancellationReason) ||
+                other.cancellationReason == cancellationReason) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.isSynced, isSynced) ||
@@ -408,25 +461,29 @@ class _$OrderImpl extends _Order {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      orderNumber,
-      customerId,
-      customerName,
-      const DeepCollectionEquality().hash(_items),
-      subtotal,
-      taxAmount,
-      taxRate,
-      total,
-      status,
-      paymentMethod,
-      cashierId,
-      cashierName,
-      createdAt,
-      completedAt,
-      updatedAt,
-      isSynced);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        orderNumber,
+        customerId,
+        customerName,
+        const DeepCollectionEquality().hash(_items),
+        subtotal,
+        taxAmount,
+        taxRate,
+        total,
+        status,
+        paymentMethod,
+        cashierId,
+        cashierName,
+        createdAt,
+        completedAt,
+        cancelledAt,
+        cancellationReason,
+        notes,
+        updatedAt,
+        isSynced
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -452,6 +509,9 @@ abstract class _Order extends Order {
       required final String cashierName,
       required final DateTime createdAt,
       final DateTime? completedAt,
+      final DateTime? cancelledAt,
+      final String? cancellationReason,
+      final String? notes,
       required final DateTime updatedAt,
       final bool isSynced}) = _$OrderImpl;
   const _Order._() : super._();
@@ -486,6 +546,12 @@ abstract class _Order extends Order {
   DateTime get createdAt;
   @override
   DateTime? get completedAt;
+  @override
+  DateTime? get cancelledAt;
+  @override
+  String? get cancellationReason;
+  @override
+  String? get notes;
   @override
   DateTime get updatedAt;
   @override

@@ -185,11 +185,25 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
       );
 
       if (pickedFile != null) {
-        return File(pickedFile.path);
+        final file = File(pickedFile.path);
+
+        // Validate file size (max 5MB)
+        final fileSize = await file.length();
+        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+
+        if (fileSize > maxSizeInBytes) {
+          state = state.copyWith(
+            error: 'Image size exceeds 5MB. Please choose a smaller image.',
+          );
+          return null;
+        }
+
+        return file;
       }
       return null;
     } catch (e) {
       print('Error picking image: $e');
+      state = state.copyWith(error: 'Failed to pick image: $e');
       return null;
     }
   }

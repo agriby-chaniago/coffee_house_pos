@@ -25,6 +25,9 @@ class Order with _$Order {
     required String cashierName,
     required DateTime createdAt,
     DateTime? completedAt,
+    DateTime? cancelledAt,
+    String? cancellationReason,
+    String? notes,
     required DateTime updatedAt,
     @Default(false) bool isSynced,
   }) = _Order;
@@ -85,6 +88,11 @@ class Order with _$Order {
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
           : null,
+      cancelledAt: json['cancelledAt'] != null
+          ? DateTime.parse(json['cancelledAt'])
+          : null,
+      cancellationReason: json['cancellationReason'],
+      notes: json['notes'],
       updatedAt: updatedAt,
       isSynced: json['isSynced'] ?? false,
     );
@@ -107,6 +115,9 @@ class Order with _$Order {
       'cashierName': cashierName,
       'createdAt': createdAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
+      'cancelledAt': cancelledAt?.toIso8601String(),
+      'cancellationReason': cancellationReason,
+      'notes': notes,
       'updatedAt': updatedAt.toIso8601String(),
       'isSynced': isSynced,
     };
@@ -127,6 +138,9 @@ class Order with _$Order {
       'paymentMethod': paymentMethod,
       'cashierId': cashierId,
       'completedAt': completedAt?.toIso8601String(),
+      'cancelledAt': cancelledAt?.toIso8601String(),
+      'cancellationReason': cancellationReason,
+      'notes': notes,
       // AppWrite will auto-generate $createdAt and $updatedAt
       // Don't send cashierName, createdAt, updatedAt (not in your schema)
     };

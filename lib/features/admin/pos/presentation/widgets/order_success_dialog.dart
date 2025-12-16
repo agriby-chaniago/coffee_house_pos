@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coffee_house_pos/features/customer/orders/data/models/order_model.dart';
 import '../services/receipt_service.dart';
 import 'package:intl/intl.dart';
+import 'package:coffee_house_pos/features/admin/settings/presentation/providers/settings_provider.dart';
 
 class OrderSuccessDialog extends ConsumerWidget {
   final Order order;
@@ -299,7 +300,13 @@ class OrderSuccessDialog extends ConsumerWidget {
                         child: OutlinedButton.icon(
                           onPressed: () async {
                             try {
-                              await ReceiptService.printReceipt(order);
+                              final storeInfo = ref.read(storeInfoProvider);
+                              await ReceiptService.printReceipt(
+                                order,
+                                storeName: storeInfo.name,
+                                storeAddress: storeInfo.address,
+                                storePhone: storeInfo.phone,
+                              );
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -332,7 +339,13 @@ class OrderSuccessDialog extends ConsumerWidget {
                         child: OutlinedButton.icon(
                           onPressed: () async {
                             try {
-                              await ReceiptService.shareReceipt(order);
+                              final storeInfo = ref.read(storeInfoProvider);
+                              await ReceiptService.shareReceipt(
+                                order,
+                                storeName: storeInfo.name,
+                                storeAddress: storeInfo.address,
+                                storePhone: storeInfo.phone,
+                              );
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(

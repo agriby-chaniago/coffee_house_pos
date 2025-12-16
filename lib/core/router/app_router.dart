@@ -10,6 +10,8 @@ import '../../features/customer/orders/presentation/screens/order_history_screen
 import '../../features/customer/orders/presentation/screens/order_tracking_screen.dart';
 import '../../features/customer/profile/presentation/screens/profile_screen.dart';
 import '../../features/admin/pos/presentation/screens/pos_screen.dart';
+import '../../features/admin/orders/presentation/screens/orders_screen.dart';
+import '../../features/admin/orders/presentation/screens/order_detail_screen.dart';
 import '../../features/admin/inventory/presentation/screens/inventory_screen.dart';
 import '../../features/admin/inventory/presentation/screens/waste_logs_screen.dart';
 import '../../features/admin/reports/presentation/screens/reports_screen.dart';
@@ -99,6 +101,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/admin/pos',
         builder: (context, state) => const PosScreen(),
         routes: [
+          GoRoute(
+            path: 'orders',
+            builder: (context, state) => const OrdersScreen(),
+            routes: [
+              GoRoute(
+                path: ':orderId',
+                builder: (context, state) {
+                  final orderId = state.pathParameters['orderId']!;
+                  return OrderDetailScreen(orderId: orderId);
+                },
+              ),
+            ],
+          ),
           GoRoute(
             path: 'inventory',
             builder: (context, state) => const InventoryScreen(),
