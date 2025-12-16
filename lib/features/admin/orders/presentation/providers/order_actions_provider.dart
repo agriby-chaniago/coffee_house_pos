@@ -65,8 +65,7 @@ class OrderActionsNotifier extends StateNotifier<OrderActionState> {
         await OfflineSyncManager().queueOperation(
           operationType: OperationType.update,
           collectionName: AppwriteConfig.ordersCollection,
-          documentId: orderId,
-          data: data,
+          data: {'documentId': orderId, ...data},
         );
 
         print('📥 Order status update queued for sync when online');
@@ -119,8 +118,7 @@ class OrderActionsNotifier extends StateNotifier<OrderActionState> {
         await OfflineSyncManager().queueOperation(
           operationType: OperationType.update,
           collectionName: AppwriteConfig.ordersCollection,
-          documentId: orderId,
-          data: data,
+          data: {'documentId': orderId, ...data},
         );
 
         print('📥 Order cancellation queued for sync when online');
