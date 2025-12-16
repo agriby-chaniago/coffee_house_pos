@@ -438,7 +438,8 @@ void _showFilterDialog(
                           label: Text(
                             tempEndDate == null
                                 ? 'End Date'
-                                : DateFormat('dd MMM yyyy').format(tempEndDate!),
+                                : DateFormat('dd MMM yyyy')
+                                    .format(tempEndDate!),
                           ),
                           onPressed: () async {
                             final date = await showDatePicker(

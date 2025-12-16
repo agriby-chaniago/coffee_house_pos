@@ -816,6 +816,7 @@ Section headers hard to read:
 **Status:** ✅ RESOLVED
 
 **Fix Applied:**
+
 - Implemented filter dialog in waste_logs_screen.dart
 - Added date range picker (start/end dates)
 - Added reason dropdown filter (All/Expired/Damaged/Spilled/Other)
