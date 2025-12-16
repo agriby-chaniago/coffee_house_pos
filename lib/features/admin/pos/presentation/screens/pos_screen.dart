@@ -431,8 +431,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       case 'food':
         icon = Icons.restaurant_rounded;
         break;
-      case 'snack':
-        icon = Icons.fastfood_rounded;
+      case 'dessert':
+        icon = Icons.cake_rounded;
         break;
       default:
         icon = Icons.category_rounded;
@@ -843,8 +843,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         return Icons.local_cafe;
       case 'food':
         return Icons.restaurant;
-      case 'snack':
-        return Icons.fastfood;
+      case 'dessert':
+        return Icons.cake;
       default:
         return Icons.inventory_2;
     }

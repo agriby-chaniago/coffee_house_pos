@@ -459,34 +459,33 @@ When testing, look for:
 
 ---
 
-### 11. CRITICAL: Product Images Not Displaying ⚠️🔴
+### 11. ✅ RESOLVED: Product Images Not Displaying
 
 **Files:**
 
 - `lib/features/admin/inventory/presentation/providers/product_form_provider.dart`
 - `lib/features/admin/inventory/presentation/providers/edit_product_provider.dart`
+- `lib/features/admin/inventory/presentation/screens/inventory_screen.dart`
+- `lib/core/config/appwrite_config.dart`
 
 **Test Cases:** 4.3, 4.4  
-**Severity:** 🔴 CRITICAL
+**Severity:** 🔴 CRITICAL → ✅ RESOLVED
 
-**Issue:**
+**Root Cause:**
 
-- Upload berhasil (notifikasi muncul)
-- Image tidak tampil di product list/detail
-- Placeholder icon kategori tampil instead
+1. Image URL used `/preview` endpoint with transformations (width, height, output) - blocked on AppWrite free plan (403 error)
+2. Bucket ID was incorrect ('product-images' instead of actual ID)
+3. UI only showed category icons, not product images
+4. Bucket permissions not set for public read access
 
-**Impact:**
+**Fix Applied:**
 
-- Product images tidak bisa dilihat user
-- Bad UX, terlihat unprofessional
-- Storage terisi tapi tidak digunakan
+1. Changed bucket ID to correct value: `69207cf60029bbb16f46`
+2. Changed image URL from `/preview?width=400&height=400&output=jpg` to `/view?project={projectId}` (free plan compatible)
+3. Updated inventory_screen.dart to display NetworkImage with fallback
+4. Set bucket permissions: **Any** role with **Read** access
 
-**Possible Causes:**
-
-1. Image URL construction salah
-2. AppWrite Storage bucket not public
-3. Image view URL tidak accessible
-4. CORS or permissions issue
+**Status:** ✅ TESTED & WORKING
 
 **Root Cause Identified:**
 
@@ -557,24 +556,64 @@ AppWrite enum validation - "waste" not in allowed movement types
 
 **Issue:**
 
-- Inventory displays: Coffee, Non-Coffee, Food, **Dessert**
-- Add Product form shows: Coffee, Non-Coffee, Food, **Snack**
-- Inconsistent category naming
+- Categories were inconsistent between code and documentation
+- Some places showed "Snack", should be "Dessert"
 
-**Fix:**
-Replace "Snack" with "Dessert" in product form dropdown
+**Root Cause:**
 
-**File to Update:**
-`lib/features/admin/inventory/presentation/screens/product_form_screen.dart`
+- Documentation files (README.md, seed_data.md) still referenced "Snack"
+- Code (AppConstants) was already correct with "Dessert"
 
-```dart
-// Change from:
-['Coffee', 'Non-Coffee', 'Food', 'Snack']
-// To:
-['Coffee', 'Non-Coffee', 'Food', 'Dessert']
+**Fix Applied:**
+
+Updated all documentation and seed data files to use consistent "Dessert" category:
+
+**Files Updated:**
+
+1. ✅ `lib/core/constants/app_constants.dart` - Already correct: `['Coffee', 'Non-Coffee', 'Food', 'Dessert']`
+2. ✅ `lib/features/admin/pos/presentation/screens/pos_screen.dart` - Changed 2 switch cases from 'snack' → 'dessert'
+3. ✅ `README.md` - Updated 5 occurrences of "Snack" to "Dessert"
+4. ✅ `seed_data.md` - Updated schema enum and product examples (section header + 2 product JSONs)
+5. ✅ `seed_products_updated.csv` - Already using "Dessert" consistently (verified all 16 products)
+
+**Detailed Verification:**
+
+```bash
+# ✅ Code consistency check:
+grep -r "'Snack'" lib/ --include="*.dart"
+# Result: No category references, only SnackBar (Flutter widget)
+
+# ✅ Category definitions:
+lib/core/constants/app_constants.dart:6-10
+  productCategories = ['Coffee', 'Non-Coffee', 'Food', 'Dessert']
+
+# ✅ Icon mappings:
+lib/features/admin/pos/presentation/screens/pos_screen.dart:434
+  case 'dessert': icon = Icons.cake_rounded;
+
+lib/features/admin/inventory/presentation/screens/inventory_screen.dart:610
+  case 'dessert': return Icons.cake;
+
+# ✅ Dropdown usage:
+lib/features/admin/inventory/presentation/screens/add_product_screen.dart:27
+  _selectedCategory = AppConstants.productCategories.first; // Uses constant
+
+lib/features/admin/inventory/presentation/screens/edit_product_screen.dart:244
+  items: AppConstants.productCategories.map((category) {...}); // Uses constant
+
+# ✅ Documentation:
+README.md: 5 instances updated to "Dessert"
+seed_data.md: schema + product examples updated
 ```
 
-**Status:** 🟡 Pending - Quick fix
+**Impact:**
+
+- ✅ All dropdowns now show consistent categories
+- ✅ Icon mappings updated (cake icon for dessert)
+- ✅ No hard-coded category strings remain
+- ✅ AppConstants is single source of truth
+
+**Status:** ✅ RESOLVED & VERIFIED - 100% consistent across entire codebase
 
 ---
 

@@ -15,7 +15,7 @@
 
 - `name` (string, required, 100 chars)
 - `description` (string, required, 500 chars)
-- `category` (string, required, enum: Coffee, Non-Coffee, Food, Snack)
+- `category` (string, required, enum: Coffee, Non-Coffee, Food, Dessert)
 - `imageUrl` (string, optional, 500 chars)
 - `variants` (JSON, required) - Array of {size: string, price: number}
 - `availableAddOnIds` (string[], required) - Array of addon IDs
@@ -387,7 +387,7 @@
 }
 ```
 
-### Snack Products
+### Dessert Products
 
 #### 15. French Fries
 
@@ -395,7 +395,7 @@
 {
   "name": "French Fries",
   "description": "Kentang goreng crispy dengan pilihan saus",
-  "category": "Snack",
+  "category": "Dessert",
   "imageUrl": "",
   "variants": [
     { "size": "M", "price": 15000 },
@@ -417,7 +417,7 @@
 {
   "name": "Cookies Chocolate Chip",
   "description": "Cookies lembut dengan chocolate chip melimpah",
-  "category": "Snack",
+  "category": "Dessert",
   "imageUrl": "",
   "variants": [{ "size": "M", "price": 12000 }],
   "availableAddOnIds": [],
