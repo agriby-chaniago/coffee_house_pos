@@ -389,7 +389,7 @@ class _EditCartItemModalState extends ConsumerState<EditCartItemModal> {
       price: selectedVariant.price,
       quantity: _quantity,
       addons: _getSelectedAddons,
-      notes: widget.cartItem.notes ?? '',
+      notes: widget.cartItem.notes,
     );
 
     ref.read(customerCartProvider.notifier).updateItem(updatedItem);
@@ -399,8 +399,14 @@ class _EditCartItemModalState extends ConsumerState<EditCartItemModal> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${widget.product.name} updated in cart'),
+        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
+    Future.delayed(const Duration(seconds: 2), () {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+    });
   }
 }

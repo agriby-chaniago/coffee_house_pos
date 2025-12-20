@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../providers/checkout_provider.dart';
 import '../../../cart/presentation/providers/customer_cart_provider.dart';
 import '../../../notifications/presentation/providers/notifications_provider.dart';
@@ -42,6 +43,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final cartState = ref.watch(customerCartProvider);
     final checkoutState = ref.watch(checkoutProvider);
 
@@ -63,19 +65,31 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Pesanan berhasil dibuat!'),
+            duration: const Duration(seconds: 3),
             backgroundColor: Theme.of(context).colorScheme.primary,
             behavior: SnackBarBehavior.floating,
           ),
         );
+        Future.delayed(const Duration(seconds: 3), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
       } else if (next.status == CheckoutStatus.error) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage ?? 'Terjadi kesalahan'),
+            duration: const Duration(seconds: 3),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
+        Future.delayed(const Duration(seconds: 3), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
       }
     });
 
@@ -92,18 +106,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Order summary header
-              const Row(
+              Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.receipt_long,
                     color: AppTheme.peach,
                     size: 28,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Text(
                     'Ringkasan Pesanan',
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -115,10 +128,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.mantle,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppTheme.surface,
+                    color: theme.colorScheme.outlineVariant,
                     width: 1,
                   ),
                 ),
@@ -131,17 +144,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const Divider(height: 24),
                     _SummaryRow(
                       label: 'Subtotal',
-                      value: 'Rp ${cartState.subtotal.toStringAsFixed(0)}',
+                      value: CurrencyFormatter.format(cartState.subtotal),
                     ),
                     const SizedBox(height: 8),
                     _SummaryRow(
                       label: 'PPN (11%)',
-                      value: 'Rp ${cartState.tax.toStringAsFixed(0)}',
+                      value: CurrencyFormatter.format(cartState.tax),
                     ),
                     const Divider(height: 24),
                     _SummaryRow(
                       label: 'Total Pembayaran',
-                      value: 'Rp ${cartState.total.toStringAsFixed(0)}',
+                      value: CurrencyFormatter.format(cartState.total),
                       isTotal: true,
                     ),
                   ],
@@ -151,18 +164,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               const SizedBox(height: 32),
 
               // Customer info header
-              const Row(
+              Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.person,
                     color: AppTheme.blue,
                     size: 28,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Text(
                     'Informasi Pelanggan',
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -178,14 +190,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   hintText: 'Masukkan nama Anda',
                   prefixIcon: const Icon(Icons.person_outline),
                   filled: true,
-                  fillColor: AppTheme.mantle,
+                  fillColor: theme.colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                 ),
                 validator: (value) {
@@ -206,14 +220,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   hintText: 'Contoh: 5',
                   prefixIcon: const Icon(Icons.table_restaurant),
                   filled: true,
-                  fillColor: AppTheme.mantle,
+                  fillColor: theme.colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                 ),
                 keyboardType: TextInputType.number,
@@ -235,14 +251,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   hintText: 'Tambahkan catatan untuk pesanan',
                   prefixIcon: const Icon(Icons.note_outlined),
                   filled: true,
-                  fillColor: AppTheme.mantle,
+                  fillColor: theme.colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.surface),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                 ),
                 maxLines: 3,
@@ -307,19 +325,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     width: 1,
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: AppTheme.blue,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Pesanan akan diteruskan ke dapur dan bisa dipantau statusnya',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.subtext0,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8),
                         ),
                       ),
                     ),
@@ -347,6 +364,7 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -354,8 +372,8 @@ class _SummaryRow extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? AppTheme.text : AppTheme.subtext0,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         Text(
@@ -363,7 +381,11 @@ class _SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: FontWeight.bold,
-            color: isTotal ? AppTheme.green : AppTheme.text,
+            color: isTotal
+                ? (theme.brightness == Brightness.dark
+                    ? AppTheme.green
+                    : const Color(0xFF2D7A3E))
+                : theme.colorScheme.onSurface,
           ),
         ),
       ],

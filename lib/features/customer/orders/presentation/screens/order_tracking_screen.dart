@@ -280,6 +280,12 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
+                          Future.delayed(const Duration(seconds: 2), () {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                            }
+                          });
                         },
                       ),
                     ],
@@ -361,6 +367,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                             child: Text(
                               '${quantity}x',
                               style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

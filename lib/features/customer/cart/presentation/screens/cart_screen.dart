@@ -94,6 +94,12 @@ class CartScreen extends ConsumerWidget {
                               ),
                             ),
                           );
+                          Future.delayed(const Duration(seconds: 3), () {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                            }
+                          });
                         },
                         child: _buildCartItem(context, ref, item),
                       );
@@ -208,7 +214,10 @@ class CartScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         'Size: ${item.size}',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     if (item.addons.isNotEmpty) ...[
@@ -216,6 +225,7 @@ class CartScreen extends ConsumerWidget {
                       Text(
                         'Add-ons:',
                         style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -235,7 +245,10 @@ class CartScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               addon.name,
-                              style: theme.textTheme.bodySmall,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onTertiaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           );
                         }).toList(),
@@ -433,20 +446,34 @@ class CartScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Loading product...'),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      ),
-      error: (err, stack) => ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error loading product'),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      ),
+      loading: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Loading product...'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
+      },
+      error: (err, stack) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error loading product'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
+      },
     );
   }
 
@@ -478,6 +505,11 @@ class CartScreen extends ConsumerWidget {
                   ),
                 ),
               );
+              Future.delayed(const Duration(seconds: 3), () {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                }
+              });
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

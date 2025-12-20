@@ -223,7 +223,9 @@ class ProfileScreen extends ConsumerWidget {
   }) {
     return Card(
       elevation: 2,
-      color: color.withOpacity(0.1),
+      color: theme.brightness == Brightness.dark
+          ? color.withOpacity(0.1)
+          : theme.colorScheme.surfaceContainerHighest,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -231,7 +233,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Icon(
               icon,
-              color: color,
+              color: theme.brightness == Brightness.dark ? color : color,
               size: 32,
             ),
             const SizedBox(height: 12),
@@ -239,7 +241,9 @@ class ProfileScreen extends ConsumerWidget {
               value,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: theme.brightness == Brightness.dark
+                    ? color
+                    : theme.colorScheme.onSurface,
                 fontSize: isSmallValue ? 16 : 24,
               ),
               maxLines: 1,
@@ -249,7 +253,8 @@ class ProfileScreen extends ConsumerWidget {
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withOpacity(0.8),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -267,7 +272,7 @@ class ProfileScreen extends ConsumerWidget {
               child: Card(
                 child: Container(
                   height: 120,
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                 ),
               ),
             ),
@@ -276,7 +281,7 @@ class ProfileScreen extends ConsumerWidget {
               child: Card(
                 child: Container(
                   height: 120,
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                 ),
               ),
             ),

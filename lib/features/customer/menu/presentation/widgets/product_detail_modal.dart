@@ -9,7 +9,6 @@ import '../providers/addons_provider.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../../../cart/presentation/providers/customer_cart_provider.dart';
 import '../../../../admin/inventory/data/models/addon_model.dart';
-import 'package:go_router/go_router.dart';
 
 class ProductDetailModal extends ConsumerStatefulWidget {
   final Product product;
@@ -218,16 +217,31 @@ class _ProductDetailModalState extends ConsumerState<ProductDetailModal> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: categoryColor.withOpacity(0.2),
+            color: categoryColor
+                .withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.15),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: categoryColor.withOpacity(0.5)),
+            border: Border.all(
+              color: categoryColor
+                  .withOpacity(theme.brightness == Brightness.dark ? 0.7 : 0.6),
+              width: 1.5,
+            ),
           ),
           child: Text(
             widget.product.category,
             style: TextStyle(
-              color: categoryColor,
+              color: theme.brightness == Brightness.dark
+                  ? categoryColor.withOpacity(0.95)
+                  : categoryColor.withOpacity(0.85),
               fontSize: 12,
               fontWeight: FontWeight.bold,
+              shadows: theme.brightness == Brightness.light
+                  ? [
+                      Shadow(
+                        color: Colors.white.withOpacity(0.7),
+                        blurRadius: 2,
+                      )
+                    ]
+                  : null,
             ),
           ),
         ),
@@ -518,7 +532,9 @@ class _ProductDetailModalState extends ConsumerState<ProductDetailModal> {
                   _quantity.toString(),
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: categoryColor,
+                    color: theme.brightness == Brightness.dark
+                        ? categoryColor
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -570,7 +586,9 @@ class _ProductDetailModalState extends ConsumerState<ProductDetailModal> {
                     CurrencyFormatter.format(_calculatedPrice),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: categoryColor,
+                      color: theme.brightness == Brightness.dark
+                          ? categoryColor
+                          : theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -641,13 +659,28 @@ class _ProductDetailModalState extends ConsumerState<ProductDetailModal> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.shopping_cart_rounded),
+                    Icon(
+                      Icons.shopping_cart_rounded,
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.95),
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Tambah ke Keranjang',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.95),
+                        shadows: theme.brightness == Brightness.light
+                            ? [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 1,
+                                )
+                              ]
+                            : null,
                       ),
                     ),
                   ],

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:coffee_house_pos/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../providers/notifications_provider.dart';
-import '../../../shared/widgets/customer_bottom_nav.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -47,6 +45,11 @@ class NotificationsScreen extends ConsumerWidget {
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
+                  Future.delayed(const Duration(seconds: 2), () {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    }
+                  });
                 },
               ),
             PopupMenuButton(
@@ -87,6 +90,12 @@ class NotificationsScreen extends ConsumerWidget {
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                  }
+                                });
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -118,6 +127,11 @@ class NotificationsScreen extends ConsumerWidget {
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  }
+                });
               },
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -208,6 +222,11 @@ class NotificationsScreen extends ConsumerWidget {
             ),
           ),
         );
+        Future.delayed(const Duration(seconds: 3), () {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
       },
       child: ListTile(
         leading: Container(
@@ -278,6 +297,11 @@ class NotificationsScreen extends ConsumerWidget {
                 behavior: SnackBarBehavior.floating,
               ),
             );
+            Future.delayed(const Duration(seconds: 2), () {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              }
+            });
           }
         },
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

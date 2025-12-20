@@ -176,11 +176,12 @@ class EmptyFilteredOrdersState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return EmptyState(
       icon: Icons.filter_list_off,
       title: 'No $filterStatus Orders',
       message: 'You don\'t have any orders with "$filterStatus" status.',
-      iconColor: Colors.grey,
+      iconColor: theme.colorScheme.secondary,
     );
   }
 }

@@ -279,7 +279,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                        '${result['productName']} ditambahkan ke keranjang'),
+                        '${result['productName']} ditambahkan ke keranjang',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        )),
                     behavior: SnackBarBehavior.floating,
                     backgroundColor: result['categoryColor'] as Color?,
                     duration: const Duration(seconds: 5),
@@ -309,7 +313,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                        '${result['productName']} ditambahkan ke keranjang'),
+                        '${result['productName']} ditambahkan ke keranjang',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        )),
                     behavior: SnackBarBehavior.floating,
                     backgroundColor: result['categoryColor'] as Color?,
                     duration: const Duration(seconds: 5),
@@ -338,6 +346,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   }
 
   Widget _buildShimmerLoading() {
+    final theme = Theme.of(context);
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -349,8 +358,8 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       itemCount: 6,
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
+          baseColor: theme.colorScheme.surfaceContainerHighest,
+          highlightColor: theme.colorScheme.surface,
           child: Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -361,9 +370,9 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 Expanded(
                   flex: 3,
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
                     ),
@@ -379,13 +388,13 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                         Container(
                           width: double.infinity,
                           height: 16,
-                          color: Colors.white,
+                          color: theme.colorScheme.surfaceContainerHighest,
                         ),
                         const SizedBox(height: 8),
                         Container(
                           width: 80,
                           height: 14,
-                          color: Colors.white,
+                          color: theme.colorScheme.surfaceContainerHighest,
                         ),
                       ],
                     ),

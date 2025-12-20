@@ -176,9 +176,24 @@ class ProductCard extends StatelessWidget {
                                   CurrencyFormatter.format(
                                       product.variants[0].price),
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: categoryColor,
+                                    color: theme.brightness == Brightness.dark
+                                        ? categoryColor
+                                        : Colors.black87,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: 14,
+                                    shadows:
+                                        theme.brightness == Brightness.light
+                                            ? [
+                                                Shadow(
+                                                  color: Colors.white,
+                                                  blurRadius: 3,
+                                                ),
+                                                Shadow(
+                                                  color: Colors.white,
+                                                  blurRadius: 5,
+                                                ),
+                                              ]
+                                            : null,
                                   ),
                                 ),
                               ] else if (product.variants.isNotEmpty) ...[
@@ -186,9 +201,24 @@ class ProductCard extends StatelessWidget {
                                   CurrencyFormatter.format(
                                       product.variants[0].price),
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: categoryColor,
+                                    color: theme.brightness == Brightness.dark
+                                        ? categoryColor
+                                        : Colors.black87,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: 14,
+                                    shadows:
+                                        theme.brightness == Brightness.light
+                                            ? [
+                                                Shadow(
+                                                  color: Colors.white,
+                                                  blurRadius: 3,
+                                                ),
+                                                Shadow(
+                                                  color: Colors.white,
+                                                  blurRadius: 5,
+                                                ),
+                                              ]
+                                            : null,
                                   ),
                                 ),
                               ],

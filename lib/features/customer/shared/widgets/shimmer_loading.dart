@@ -47,7 +47,7 @@ class ShimmerProductCard extends StatelessWidget {
               flex: 3,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(12),
                   ),
@@ -68,7 +68,7 @@ class ShimmerProductCard extends StatelessWidget {
                       width: double.infinity,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -80,7 +80,7 @@ class ShimmerProductCard extends StatelessWidget {
                           width: 60,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
+                            color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -89,7 +89,7 @@ class ShimmerProductCard extends StatelessWidget {
                           width: 60,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
+                            color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -142,13 +142,13 @@ class ShimmerOrderCard extends StatelessWidget {
           contentPadding: const EdgeInsets.all(16),
           leading: CircleAvatar(
             radius: 24,
-            backgroundColor: Colors.grey[300],
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
           ),
           title: Container(
             width: double.infinity,
             height: 14,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -160,7 +160,7 @@ class ShimmerOrderCard extends StatelessWidget {
                 width: 120,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -169,7 +169,7 @@ class ShimmerOrderCard extends StatelessWidget {
                 width: 100,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -179,7 +179,7 @@ class ShimmerOrderCard extends StatelessWidget {
             width: 60,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -220,7 +220,7 @@ class ShimmerStatCards extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: theme.colorScheme.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -229,7 +229,7 @@ class ShimmerStatCards extends StatelessWidget {
                     width: 60,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -238,7 +238,7 @@ class ShimmerStatCards extends StatelessWidget {
                     width: 80,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -271,7 +271,7 @@ class ShimmerProductDetail extends StatelessWidget {
             // Image
             Container(
               height: 300,
-              color: Colors.grey[300],
+              color: theme.colorScheme.surfaceContainerHighest,
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -283,7 +283,7 @@ class ShimmerProductDetail extends StatelessWidget {
                     width: double.infinity,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -297,7 +297,7 @@ class ShimmerProductDetail extends StatelessWidget {
                         width: double.infinity,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

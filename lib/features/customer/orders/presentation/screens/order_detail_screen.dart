@@ -165,7 +165,7 @@ class OrderDetailScreen extends ConsumerWidget {
 
   Widget _buildOrderInfoCard(
       BuildContext context, ThemeData theme, Order order) {
-    final statusColor = getStatusColor(order.status);
+    final statusColor = getStatusColor(context, order.status);
     final statusIcon = getStatusIcon(order.status);
 
     return Card(
@@ -196,6 +196,11 @@ class OrderDetailScreen extends ConsumerWidget {
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
+                    Future.delayed(const Duration(seconds: 2), () {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      }
+                    });
                   },
                   tooltip: 'Copy order number',
                 ),
@@ -614,10 +619,11 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
-  Color getStatusColor(String status) {
+  Color getStatusColor(BuildContext context, String status) {
+    final theme = Theme.of(context);
     switch (status.toLowerCase()) {
       case 'pending':
-        return Colors.grey;
+        return theme.colorScheme.secondary;
       case 'preparing':
         return Colors.blue;
       case 'ready':
@@ -627,7 +633,7 @@ class OrderDetailScreen extends ConsumerWidget {
       case 'cancelled':
         return Colors.red;
       default:
-        return Colors.grey;
+        return theme.colorScheme.secondary;
     }
   }
 
