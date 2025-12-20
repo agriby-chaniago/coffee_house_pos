@@ -30,7 +30,6 @@ mixin _$Order {
   String? get paymentMethod =>
       throw _privateConstructorUsedError; // Store as string for AppWrite
   String get cashierId => throw _privateConstructorUsedError;
-  String get cashierName => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get completedAt => throw _privateConstructorUsedError;
   DateTime? get cancelledAt => throw _privateConstructorUsedError;
@@ -61,7 +60,6 @@ abstract class $OrderCopyWith<$Res> {
       String status,
       String? paymentMethod,
       String cashierId,
-      String cashierName,
       DateTime createdAt,
       DateTime? completedAt,
       DateTime? cancelledAt,
@@ -96,7 +94,6 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
     Object? status = null,
     Object? paymentMethod = freezed,
     Object? cashierId = null,
-    Object? cashierName = null,
     Object? createdAt = null,
     Object? completedAt = freezed,
     Object? cancelledAt = freezed,
@@ -154,10 +151,6 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
           ? _value.cashierId
           : cashierId // ignore: cast_nullable_to_non_nullable
               as String,
-      cashierName: null == cashierName
-          ? _value.cashierName
-          : cashierName // ignore: cast_nullable_to_non_nullable
-              as String,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -210,7 +203,6 @@ abstract class _$$OrderImplCopyWith<$Res> implements $OrderCopyWith<$Res> {
       String status,
       String? paymentMethod,
       String cashierId,
-      String cashierName,
       DateTime createdAt,
       DateTime? completedAt,
       DateTime? cancelledAt,
@@ -243,7 +235,6 @@ class __$$OrderImplCopyWithImpl<$Res>
     Object? status = null,
     Object? paymentMethod = freezed,
     Object? cashierId = null,
-    Object? cashierName = null,
     Object? createdAt = null,
     Object? completedAt = freezed,
     Object? cancelledAt = freezed,
@@ -301,10 +292,6 @@ class __$$OrderImplCopyWithImpl<$Res>
           ? _value.cashierId
           : cashierId // ignore: cast_nullable_to_non_nullable
               as String,
-      cashierName: null == cashierName
-          ? _value.cashierName
-          : cashierName // ignore: cast_nullable_to_non_nullable
-              as String,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -353,7 +340,6 @@ class _$OrderImpl extends _Order {
       required this.status,
       this.paymentMethod,
       required this.cashierId,
-      required this.cashierName,
       required this.createdAt,
       this.completedAt,
       this.cancelledAt,
@@ -397,8 +383,6 @@ class _$OrderImpl extends _Order {
   @override
   final String cashierId;
   @override
-  final String cashierName;
-  @override
   final DateTime createdAt;
   @override
   final DateTime? completedAt;
@@ -416,7 +400,7 @@ class _$OrderImpl extends _Order {
 
   @override
   String toString() {
-    return 'Order(id: $id, orderNumber: $orderNumber, customerId: $customerId, customerName: $customerName, items: $items, subtotal: $subtotal, taxAmount: $taxAmount, taxRate: $taxRate, total: $total, status: $status, paymentMethod: $paymentMethod, cashierId: $cashierId, cashierName: $cashierName, createdAt: $createdAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason, notes: $notes, updatedAt: $updatedAt, isSynced: $isSynced)';
+    return 'Order(id: $id, orderNumber: $orderNumber, customerId: $customerId, customerName: $customerName, items: $items, subtotal: $subtotal, taxAmount: $taxAmount, taxRate: $taxRate, total: $total, status: $status, paymentMethod: $paymentMethod, cashierId: $cashierId, createdAt: $createdAt, completedAt: $completedAt, cancelledAt: $cancelledAt, cancellationReason: $cancellationReason, notes: $notes, updatedAt: $updatedAt, isSynced: $isSynced)';
   }
 
   @override
@@ -443,8 +427,6 @@ class _$OrderImpl extends _Order {
                 other.paymentMethod == paymentMethod) &&
             (identical(other.cashierId, cashierId) ||
                 other.cashierId == cashierId) &&
-            (identical(other.cashierName, cashierName) ||
-                other.cashierName == cashierName) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.completedAt, completedAt) ||
@@ -475,7 +457,6 @@ class _$OrderImpl extends _Order {
         status,
         paymentMethod,
         cashierId,
-        cashierName,
         createdAt,
         completedAt,
         cancelledAt,
@@ -506,7 +487,6 @@ abstract class _Order extends Order {
       required final String status,
       final String? paymentMethod,
       required final String cashierId,
-      required final String cashierName,
       required final DateTime createdAt,
       final DateTime? completedAt,
       final DateTime? cancelledAt,
@@ -540,8 +520,6 @@ abstract class _Order extends Order {
   String? get paymentMethod;
   @override // Store as string for AppWrite
   String get cashierId;
-  @override
-  String get cashierName;
   @override
   DateTime get createdAt;
   @override

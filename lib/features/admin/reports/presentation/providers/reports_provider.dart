@@ -119,24 +119,73 @@ final ordersProvider = FutureProvider.autoDispose<List<Order>>((ref) async {
     print('📊 FETCHING ORDERS FOR REPORTS');
     print('═══════════════════════════════════════════════════════');
     print('Date Range: ${filter.startDate} to ${filter.endDate}');
+    print('Start (ISO): ${filter.startDate.toIso8601String()}');
+    print('End (ISO): ${filter.endDate.toIso8601String()}');
+    print('Start (UTC): ${filter.startDate.toUtc().toIso8601String()}');
+    print('End (UTC): ${filter.endDate.toUtc().toIso8601String()}');
 
+    // First, try to get ALL orders to verify they exist
+    print('\n🔍 Testing: Fetching ALL orders (no date filter)...');
+    final testResponse = await appwrite.databases.listDocuments(
+      databaseId: AppwriteConfig.databaseId,
+      collectionId: AppwriteConfig.ordersCollection,
+      queries: [
+        Query.orderDesc('\$createdAt'),
+        Query.limit(10),
+      ],
+    );
+    print('📦 Total orders in database: ${testResponse.total}');
+    if (testResponse.documents.isNotEmpty) {
+      print('📋 Recent orders:');
+      for (var doc in testResponse.documents) {
+        print('   - ${doc.data['orderNumber']} at ${doc.$createdAt}');
+      }
+    }
+
+    print('\n🔍 Now fetching with date filter...');
     final response = await appwrite.databases.listDocuments(
       databaseId: AppwriteConfig.databaseId,
       collectionId: AppwriteConfig.ordersCollection,
       queries: [
         Query.greaterThanEqual(
-            '\$createdAt', filter.startDate.toIso8601String()),
-        Query.lessThanEqual('\$createdAt', filter.endDate.toIso8601String()),
+            '\$createdAt', filter.startDate.toUtc().toIso8601String()),
+        Query.lessThanEqual(
+            '\$createdAt', filter.endDate.toUtc().toIso8601String()),
         Query.orderDesc('\$createdAt'),
         Query.limit(1000),
       ],
     );
 
-    final orders = response.documents.map((doc) {
-      return Order.fromJson({...doc.data, '\$id': doc.$id});
-    }).toList();
+    print('📄 Raw documents fetched: ${response.documents.length}');
 
-    print('✅ Fetched ${orders.length} orders');
+    final orders = <Order>[];
+    for (var doc in response.documents) {
+      try {
+        final order = Order.fromJson({...doc.data, '\$id': doc.$id});
+        orders.add(order);
+      } catch (e, stack) {
+        print('❌ Error parsing order ${doc.$id}: $e');
+        print('   Document data: ${doc.data}');
+        print('   Stack: $stack');
+        // Skip this order and continue
+      }
+    }
+
+    print('✅ Successfully parsed ${orders.length} orders');
+    if (orders.isNotEmpty) {
+      print('📋 Sample orders:');
+      for (var i = 0; i < (orders.length > 3 ? 3 : orders.length); i++) {
+        final order = orders[i];
+        print(
+            '   ${i + 1}. ${order.orderNumber} - ${order.total} - ${order.createdAt}');
+      }
+    } else {
+      print('⚠️ No orders found in date range!');
+      print('   Check if:');
+      print('   1. Orders exist in database');
+      print('   2. Date range is correct');
+      print('   3. Timezone matches');
+    }
     print('═══════════════════════════════════════════════════════');
 
     return orders;
@@ -203,17 +252,36 @@ final reportsMetricsProvider =
   final orders = await ref.watch(ordersProvider.future);
   final previousOrders = await ref.watch(previousOrdersProvider.future);
 
+  print('💰 Calculating metrics...');
+  print('   Total orders fetched: ${orders.length}');
+
+  // Filter out cancelled orders - they shouldn't count towards revenue
+  final validOrders =
+      orders.where((order) => order.status != 'cancelled').toList();
+  final validPreviousOrders =
+      previousOrders.where((order) => order.status != 'cancelled').toList();
+
+  print('   Valid orders (excluding cancelled): ${validOrders.length}');
+  print('   Cancelled orders: ${orders.length - validOrders.length}');
+
   // Current period metrics
-  final totalRevenue =
-      orders.fold<double>(0, (sum, order) => sum + order.total);
-  final orderCount = orders.length;
+  final totalRevenue = validOrders.fold<double>(0, (sum, order) {
+    print(
+        '   Adding order: ${order.orderNumber} - ${order.total} [${order.status}]');
+    return sum + order.total;
+  });
+  final orderCount = validOrders.length;
   final averageOrderValue =
       orderCount > 0 ? (totalRevenue / orderCount).toDouble() : 0.0;
 
+  print('   Total Revenue: $totalRevenue');
+  print('   Order Count: $orderCount');
+  print('   Avg Order Value: $averageOrderValue');
+
   // Previous period metrics
   final prevRevenue =
-      previousOrders.fold<double>(0, (sum, order) => sum + order.total);
-  final prevOrderCount = previousOrders.length;
+      validPreviousOrders.fold<double>(0, (sum, order) => sum + order.total);
+  final prevOrderCount = validPreviousOrders.length;
   final prevAvgOrderValue =
       prevOrderCount > 0 ? (prevRevenue / prevOrderCount).toDouble() : 0.0;
 
@@ -262,9 +330,13 @@ final topProductsProvider =
     FutureProvider.autoDispose<List<ProductSales>>((ref) async {
   final orders = await ref.watch(ordersProvider.future);
 
+  // Filter out cancelled orders
+  final validOrders =
+      orders.where((order) => order.status != 'cancelled').toList();
+
   final Map<String, ProductSales> productMap = {};
 
-  for (final order in orders) {
+  for (final order in validOrders) {
     for (final item in order.items) {
       if (productMap.containsKey(item.productId)) {
         final existing = productMap[item.productId]!;
@@ -307,6 +379,10 @@ final categorySalesProvider =
     FutureProvider.autoDispose<List<CategorySales>>((ref) async {
   final orders = await ref.watch(ordersProvider.future);
 
+  // Filter out cancelled orders
+  final validOrders =
+      orders.where((order) => order.status != 'cancelled').toList();
+
   // We need to fetch products to get categories
   final appwrite = ref.watch(appwriteProvider);
   final productsResponse = await appwrite.databases.listDocuments(
@@ -321,7 +397,7 @@ final categorySalesProvider =
 
   final Map<String, CategorySales> categoryMap = {};
 
-  for (final order in orders) {
+  for (final order in validOrders) {
     for (final item in order.items) {
       final category = productCategories[item.productId] ?? 'Unknown';
 
@@ -362,9 +438,13 @@ final hourlySalesProvider =
     FutureProvider.autoDispose<List<HourlySales>>((ref) async {
   final orders = await ref.watch(ordersProvider.future);
 
+  // Filter out cancelled orders
+  final validOrders =
+      orders.where((order) => order.status != 'cancelled').toList();
+
   final Map<int, HourlySales> hourlyMap = {};
 
-  for (final order in orders) {
+  for (final order in validOrders) {
     final hour = order.createdAt.hour;
 
     if (hourlyMap.containsKey(hour)) {

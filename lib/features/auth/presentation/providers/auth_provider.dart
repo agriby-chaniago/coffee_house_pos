@@ -109,27 +109,6 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
   AuthNotifier(this._authRepository, this._ref)
       : super(const AsyncValue.data(null));
 
-  Future<void> signInWithGoogle() async {
-    state = const AsyncValue.loading();
-
-    try {
-      await _authRepository.signInWithGoogle();
-
-      // Wait a bit for OAuth redirect to complete
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Role is automatically determined by email domain (@coffee.com = admin, others = customer)
-      // No need to set role manually
-
-      // Refresh auth state
-      _ref.invalidate(authStateProvider);
-
-      state = const AsyncValue.data(null);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
   Future<void> signInWithEmail({
     required String email,
     required String password,

@@ -1,5 +1,4 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../../../core/services/appwrite_service.dart';
 import '../../../../core/config/appwrite_config.dart';
@@ -8,35 +7,6 @@ class AuthRepository {
   final AppwriteService _appwriteService;
 
   AuthRepository(this._appwriteService);
-
-  /// Sign in with Google OAuth
-  Future<void> signInWithGoogle() async {
-    try {
-      print('=== Starting Google OAuth ===');
-      print('Endpoint: ${AppwriteConfig.endpoint}');
-      print('Project ID: ${AppwriteConfig.projectId}');
-      print('Success URL: ${AppwriteConfig.successUrl}');
-      print('Failure URL: ${AppwriteConfig.failureUrl}');
-
-      await _appwriteService.account.createOAuth2Session(
-        provider: OAuthProvider.google,
-        success: AppwriteConfig.successUrl,
-        failure: AppwriteConfig.failureUrl,
-      );
-
-      print('=== OAuth session created successfully ===');
-    } on AppwriteException catch (e) {
-      print('=== AppwriteException ===');
-      print('Code: ${e.code}');
-      print('Message: ${e.message}');
-      print('Response: ${e.response}');
-      throw _handleAppwriteException(e);
-    } catch (e) {
-      print('=== Unknown Error ===');
-      print('Error: $e');
-      rethrow;
-    }
-  }
 
   /// Sign in with Email and Password
   Future<models.Session> signInWithEmail({
@@ -155,7 +125,7 @@ class AuthRepository {
   Future<void> sendEmailVerification() async {
     try {
       await _appwriteService.account.createVerification(
-        url: '${AppwriteConfig.successUrl}/verify',
+        url: 'https://your-app-url.com/verify',
       );
     } on AppwriteException catch (e) {
       throw _handleAppwriteException(e);

@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -195,65 +197,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // Divider
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'OR',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Google Sign In Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton.icon(
-                    onPressed: authState.isLoading
-                        ? null
-                        : () async {
-                            await ref
-                                .read(authNotifierProvider.notifier)
-                                .signInWithGoogle();
-
-                            final state = ref.read(authNotifierProvider);
-                            if (state.hasError && context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    state.error.toString(),
-                                  ),
-                                  backgroundColor: theme.colorScheme.error,
-                                ),
-                              );
-                            }
-                          },
-                    icon: const Icon(Icons.login, size: 24),
-                    label: const Text(
-                      'Sign in with Google',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
                 // Info text
-                Text(
-                  'By signing in, you agree to our Terms of Service and Privacy Policy',
+                RichText(
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall,
+                  text: TextSpan(
+                    style: theme.textTheme.bodySmall,
+                    children: [
+                      const TextSpan(text: 'By signing in, you agree to our '),
+                      TextSpan(
+                        text: 'Terms of Service',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            context.push('/customer/terms-conditions');
+                          },
+                      ),
+                      const TextSpan(text: ' and '),
+                      TextSpan(
+                        text: 'Privacy Policy',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            context.push('/customer/privacy-policy');
+                          },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

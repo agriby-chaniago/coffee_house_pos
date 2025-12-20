@@ -114,6 +114,8 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         'status': 'pending',
         'paymentMethod': paymentMethod,
         'cashierId': 'customer-app',
+        // Note: cashierName should be added to Appwrite schema
+        // For now, we rely on cashierId to identify self orders
         'notes': fullNotes,
       };
 
@@ -132,8 +134,14 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         data: orderData,
       );
 
-      print(
-          '✅ Order created with ID: ${response.$id} for customer: $customerId');
+      print('✅ Order created successfully!');
+      print('   - Order ID: ${response.$id}');
+      print('   - Created At: ${response.$createdAt}');
+      print('   - Customer ID: $customerId');
+      print('   - Order Number: $orderNumber');
+      print('   - Total: ${cartState.total}');
+      print('   - Status: pending');
+      print('   - Payment Method: $paymentMethod');
 
       // Clear cart after successful order
       ref.read(customerCartProvider.notifier).clearCart();

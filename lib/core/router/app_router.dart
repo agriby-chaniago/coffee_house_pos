@@ -34,6 +34,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isLoginRoute = state.matchedLocation == '/login';
       final isVerifyRoute = state.matchedLocation == '/verify-email';
       final isSplashRoute = state.matchedLocation == '/splash';
+      final isTermsRoute =
+          state.matchedLocation == '/customer/terms-conditions';
+      final isPrivacyRoute =
+          state.matchedLocation == '/customer/privacy-policy';
+
+      // Allow access to Terms and Privacy without authentication
+      if (isTermsRoute || isPrivacyRoute) {
+        return null;
+      }
 
       // Check if auth state is still loading
       if (!authStateAsync.hasValue) {
@@ -116,11 +125,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
-        path: '/customer/terms',
+        path: '/customer/terms-conditions',
         builder: (context, state) => const TermsConditionsScreen(),
       ),
       GoRoute(
-        path: '/customer/privacy',
+        path: '/customer/privacy-policy',
         builder: (context, state) => const PrivacyPolicyScreen(),
       ),
       GoRoute(

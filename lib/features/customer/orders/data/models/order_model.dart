@@ -22,7 +22,6 @@ class Order with _$Order {
     required String status, // Store as string for AppWrite
     String? paymentMethod, // Store as string for AppWrite
     required String cashierId,
-    required String cashierName,
     required DateTime createdAt,
     DateTime? completedAt,
     DateTime? cancelledAt,
@@ -31,6 +30,16 @@ class Order with _$Order {
     required DateTime updatedAt,
     @Default(false) bool isSynced,
   }) = _Order;
+
+  // Derived property for cashierName based on cashierId
+  String get cashierName {
+    if (cashierId == 'customer-app') {
+      return 'Self Order';
+    }
+    // For admin/cashier orders, cashierId is the user ID
+    // Could fetch actual name from users collection if needed
+    return 'Cashier';
+  }
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // Handle Appwrite $id field
@@ -84,18 +93,17 @@ class Order with _$Order {
 
     return Order(
       id: id,
-      orderNumber: json['orderNumber'],
+      orderNumber: json['orderNumber'] ?? 'UNKNOWN',
       customerId: json['customerId'],
-      customerName: json['customerName'],
+      customerName: json['customerName'] ?? 'Guest',
       items: items,
-      subtotal: (json['subtotal'] as num).toDouble(),
-      taxAmount: (json['taxAmount'] as num).toDouble(),
-      taxRate: (json['taxRate'] as num).toDouble(),
-      total: (json['total'] as num).toDouble(),
-      status: json['status'],
+      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
+      taxAmount: (json['taxAmount'] as num?)?.toDouble() ?? 0.0,
+      taxRate: (json['taxRate'] as num?)?.toDouble() ?? 11.0,
+      total: (json['total'] as num?)?.toDouble() ?? 0.0,
+      status: json['status'] ?? 'pending',
       paymentMethod: json['paymentMethod'],
-      cashierId: json['cashierId'],
-      cashierName: json['cashierName'] ?? 'Unknown', // Fallback for old data
+      cashierId: json['cashierId'] ?? 'unknown',
       createdAt: createdAt,
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
@@ -124,7 +132,6 @@ class Order with _$Order {
       'status': status,
       'paymentMethod': paymentMethod,
       'cashierId': cashierId,
-      'cashierName': cashierName,
       'createdAt': createdAt.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'cancelledAt': cancelledAt?.toIso8601String(),
@@ -149,9 +156,6 @@ class Order with _$Order {
       'status': status,
       'paymentMethod': paymentMethod,
       'cashierId': cashierId,
-      'completedAt': completedAt?.toIso8601String(),
-      'cancelledAt': cancelledAt?.toIso8601String(),
-      'cancellationReason': cancellationReason,
       'notes': notes,
       // AppWrite will auto-generate $createdAt and $updatedAt
       // Don't send cashierName, createdAt, updatedAt (not in your schema)

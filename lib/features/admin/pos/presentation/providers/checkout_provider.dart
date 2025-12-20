@@ -107,8 +107,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         total: cart.total,
         status: OrderStatus.pending.name,
         paymentMethod: paymentMethod.name,
-        cashierId: cashierId,
-        cashierName: cashierName,
+        cashierId: cashierId, // Will derive cashierName from getter
         createdAt: now,
         completedAt:
             null, // Will be set when order status is updated to completed
