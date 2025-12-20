@@ -10,6 +10,8 @@ import '../../features/customer/orders/presentation/screens/checkout_screen.dart
 import '../../features/customer/orders/presentation/screens/order_history_screen.dart';
 import '../../features/customer/orders/presentation/screens/order_tracking_screen.dart';
 import '../../features/customer/profile/presentation/screens/profile_screen.dart';
+import '../../features/customer/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/customer/profile/presentation/screens/change_password_screen.dart';
 import '../../features/customer/profile/presentation/screens/terms_conditions_screen.dart';
 import '../../features/customer/profile/presentation/screens/privacy_policy_screen.dart';
 import '../../features/customer/notifications/presentation/screens/notifications_screen.dart';
@@ -27,6 +29,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/splash',
+    debugLogDiagnostics: true, // Enable debug logging
     redirect: (context, state) {
       final isLoginRoute = state.matchedLocation == '/login';
       final isVerifyRoute = state.matchedLocation == '/verify-email';
@@ -103,6 +106,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customer/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/customer/profile/edit',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/customer/profile/change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: '/customer/terms',

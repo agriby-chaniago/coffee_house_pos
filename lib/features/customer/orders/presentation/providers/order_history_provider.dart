@@ -25,8 +25,15 @@ final orderHistoryProvider =
       return [];
     }
 
-    // Try load from Hive cache first
-    final box = await Hive.openBox('order_history');
+    // Try load from Hive cache first - use singleton box
+    Box box;
+    try {
+      box = Hive.box('order_history');
+    } catch (e) {
+      // Box not opened yet, open it
+      box = await Hive.openBox('order_history');
+    }
+
     final cachedData = box.get(userId);
 
     if (cachedData != null && cachedData is List) {

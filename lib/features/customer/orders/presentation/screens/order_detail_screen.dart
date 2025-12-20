@@ -7,6 +7,7 @@ import 'package:coffee_house_pos/features/customer/orders/data/models/order_mode
 import 'package:coffee_house_pos/features/customer/cart/data/models/order_item_model.dart';
 import 'package:coffee_house_pos/core/theme/app_theme.dart';
 import 'package:coffee_house_pos/features/customer/orders/presentation/providers/order_realtime_provider.dart';
+import 'package:coffee_house_pos/features/admin/settings/presentation/providers/settings_provider.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
@@ -20,6 +21,7 @@ class OrderDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final orderAsync = ref.watch(orderRealtimeProvider(orderId));
+    final storeInfo = ref.watch(storeInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +39,7 @@ class OrderDetailScreen extends ConsumerWidget {
       body: orderAsync.when(
         data: (orderData) {
           final order = Order.fromJson(orderData);
-          return _buildReceipt(context, theme, order, ref);
+          return _buildReceipt(context, theme, order, ref, storeInfo);
         },
         loading: () => const Center(
           child: CircularProgressIndicator(),
@@ -87,6 +89,7 @@ class OrderDetailScreen extends ConsumerWidget {
     ThemeData theme,
     Order order,
     WidgetRef ref,
+    StoreInfo storeInfo,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -94,7 +97,7 @@ class OrderDetailScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Store Header
-          _buildStoreHeader(theme),
+          _buildStoreHeader(theme, storeInfo),
           const SizedBox(height: 24),
 
           // Order Info Card
@@ -130,7 +133,7 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStoreHeader(ThemeData theme) {
+  Widget _buildStoreHeader(ThemeData theme, StoreInfo storeInfo) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -144,7 +147,7 @@ class OrderDetailScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Coffee House',
+              storeInfo.name,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.peach,

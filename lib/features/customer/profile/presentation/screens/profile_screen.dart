@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:coffee_house_pos/core/theme/app_theme.dart';
 import 'package:coffee_house_pos/features/auth/presentation/providers/auth_provider.dart';
 import 'package:coffee_house_pos/features/customer/profile/presentation/providers/profile_provider.dart';
@@ -15,6 +16,7 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final authState = ref.watch(authStateProvider);
     final statsAsync = ref.watch(profileStatsProvider);
+    final userDataAsync = ref.watch(userDataProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -25,6 +27,7 @@ class ProfileScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               ref.invalidate(profileStatsProvider);
+              ref.invalidate(userDataProvider);
             },
             tooltip: 'Refresh',
           ),
@@ -41,6 +44,7 @@ class ProfileScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(profileStatsProvider);
+              ref.invalidate(userDataProvider);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -49,7 +53,14 @@ class ProfileScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // User Info Card
-                  _buildUserInfoCard(context, theme, state.user),
+                  userDataAsync.when(
+                    data: (userData) => _buildUserInfoCard(
+                        context, theme, state.user, userData),
+                    loading: () =>
+                        _buildUserInfoCard(context, theme, state.user, null),
+                    error: (_, __) =>
+                        _buildUserInfoCard(context, theme, state.user, null),
+                  ),
                   const SizedBox(height: 16),
 
                   // Statistics Cards
@@ -88,60 +99,106 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildUserInfoCard(
-      BuildContext context, ThemeData theme, dynamic user) {
+      BuildContext context, ThemeData theme, dynamic user, UserData? userData) {
     final userName = user.name ?? 'User';
     final userEmail = user.email ?? '';
+    final userPhone = userData?.phone ?? '';
+    final userPhoto = userData?.photoUrl ?? '';
 
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Avatar with gradient border
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.peach,
-                    AppTheme.mauve,
-                    AppTheme.teal,
+      child: InkWell(
+        onTap: () {
+          print('🔄 Navigating to /customer/profile/edit');
+          try {
+            context.push('/customer/profile/edit');
+          } catch (e) {
+            print('❌ Navigation error: $e');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Avatar with gradient border
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.peach,
+                      AppTheme.mauve,
+                      AppTheme.teal,
+                    ],
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: theme.colorScheme.surface,
+                  backgroundImage: userPhoto.isNotEmpty
+                      ? CachedNetworkImageProvider(userPhoto)
+                      : null,
+                  child: userPhoto.isEmpty
+                      ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: AppTheme.peach,
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // User Name
+              Text(
+                userName,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+
+              // User Email
+              Text(
+                userEmail,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              // User Phone (if available)
+              if (userPhone.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.phone,
+                      size: 16,
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      userPhone,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: theme.colorScheme.surface,
-                child: const Icon(
-                  Icons.person,
-                  size: 50,
-                  color: AppTheme.peach,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // User Name
-            Text(
-              userName,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-
-            // User Email
-            Text(
-              userEmail,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              ],
+            ],
+          ),
         ),
       ),
     );

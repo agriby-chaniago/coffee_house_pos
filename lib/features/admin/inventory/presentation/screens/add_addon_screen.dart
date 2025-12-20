@@ -53,7 +53,6 @@ class _AddAddOnScreenState extends ConsumerState<AddAddOnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final state = ref.watch(addOnFormProvider);
 
     return Scaffold(

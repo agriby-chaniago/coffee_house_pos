@@ -118,12 +118,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
       // Wait a bit for OAuth redirect to complete
       await Future.delayed(const Duration(seconds: 1));
 
-      // Check if user needs to set role (first time login)
-      final role = await _authRepository.getUserRole();
-      if (role == null) {
-        // Set default role as customer for new users
-        await _authRepository.setUserRole('customer');
-      }
+      // Role is automatically determined by email domain (@coffee.com = admin, others = customer)
+      // No need to set role manually
 
       // Refresh auth state
       _ref.invalidate(authStateProvider);
@@ -146,12 +142,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
 
-      // Check if user needs to set role (first time login)
-      final role = await _authRepository.getUserRole();
-      if (role == null) {
-        // Set default role as customer for new users
-        await _authRepository.setUserRole('customer');
-      }
+      // Role is automatically determined by email domain (@coffee.com = admin, others = customer)
+      // No need to set role manually
 
       // Refresh auth state
       _ref.invalidate(authStateProvider);
@@ -182,8 +174,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
 
-      // Set default role as customer for new users
-      await _authRepository.setUserRole('customer');
+      // Role is automatically determined by email domain (@coffee.com = admin, others = customer)
+      // No need to set role manually
 
       // Refresh auth state
       _ref.invalidate(authStateProvider);

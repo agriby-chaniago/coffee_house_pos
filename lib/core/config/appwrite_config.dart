@@ -18,6 +18,8 @@ class AppwriteConfig {
 
   // Storage
   static const String productImagesBucket = '69207cf60029bbb16f46';
+  static const String profilePhotosBucket =
+      '69207cf60029bbb16f46'; // Using same bucket as product images
 
   // OAuth
   // For Android, use appwrite-callback-[PROJECT_ID] format

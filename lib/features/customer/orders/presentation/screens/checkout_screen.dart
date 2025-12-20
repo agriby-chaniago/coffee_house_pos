@@ -7,6 +7,7 @@ import '../../../../../core/utils/currency_formatter.dart';
 import '../providers/checkout_provider.dart';
 import '../../../cart/presentation/providers/customer_cart_provider.dart';
 import '../../../notifications/presentation/providers/notifications_provider.dart';
+import '../../../../auth/presentation/providers/auth_provider.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -20,6 +21,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _nameController = TextEditingController();
   final _tableController = TextEditingController();
   final _notesController = TextEditingController();
+  String _selectedPaymentMethod = 'QRIS'; // Default payment method
+  bool _hasInitializedName = false;
 
   @override
   void dispose() {
@@ -36,6 +39,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ref.read(checkoutProvider.notifier).placeOrder(
             customerName: _nameController.text.trim(),
             tableNumber: _tableController.text.trim(),
+            paymentMethod: _selectedPaymentMethod,
             notes: _notesController.text.trim(),
           );
     }
@@ -46,6 +50,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final theme = Theme.of(context);
     final cartState = ref.watch(customerCartProvider);
     final checkoutState = ref.watch(checkoutProvider);
+    final authState = ref.watch(authStateProvider);
+
+    // Auto-populate customer name from user's display name
+    if (!_hasInitializedName && authState.hasValue) {
+      authState.whenData((state) {
+        if (state is AuthStateAuthenticated && _nameController.text.isEmpty) {
+          _nameController.text = state.user.name;
+          _hasInitializedName = true;
+        }
+      });
+    }
 
     // Listen to checkout state changes
     ref.listen<CheckoutState>(checkoutProvider, (previous, next) {
@@ -238,6 +253,40 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     return 'Nomor meja tidak boleh kosong';
                   }
                   return null;
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Payment Method Dropdown
+              DropdownButtonFormField<String>(
+                initialValue: _selectedPaymentMethod,
+                decoration: InputDecoration(
+                  labelText: 'Metode Pembayaran',
+                  prefixIcon: const Icon(Icons.payment),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        BorderSide(color: theme.colorScheme.outlineVariant),
+                  ),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'QRIS', child: Text('QRIS')),
+                  DropdownMenuItem(value: 'Debit', child: Text('Debit Card')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedPaymentMethod = value;
+                    });
+                  }
                 },
               ),
 

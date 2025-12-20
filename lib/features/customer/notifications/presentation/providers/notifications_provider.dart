@@ -83,14 +83,29 @@ enum NotificationType {
 
 // Notifications provider with Hive storage
 class NotificationsNotifier extends StateNotifier<List<NotificationItem>> {
+  late final Box _box;
+  bool _isInitialized = false;
+
   NotificationsNotifier() : super([]) {
-    _loadNotifications();
+    _initBox();
+  }
+
+  Future<void> _initBox() async {
+    try {
+      _box = await Hive.openBox('notifications');
+      _isInitialized = true;
+      await _loadNotifications();
+    } catch (e) {
+      print('❌ Error initializing notifications box: $e');
+      _isInitialized = false;
+      state = [];
+    }
   }
 
   Future<void> _loadNotifications() async {
+    if (!_isInitialized) return;
     try {
-      final box = await Hive.openBox('notifications');
-      final notificationsData = box.get('items', defaultValue: []) as List;
+      final notificationsData = _box.get('items', defaultValue: []) as List;
 
       final notifications = notificationsData.map((item) {
         // Handle both Map<dynamic, dynamic> and Map<String, dynamic>
@@ -111,10 +126,10 @@ class NotificationsNotifier extends StateNotifier<List<NotificationItem>> {
   }
 
   Future<void> _saveNotifications() async {
+    if (!_isInitialized) return;
     try {
-      final box = await Hive.openBox('notifications');
       final notificationsJson = state.map((n) => n.toJson()).toList();
-      await box.put('items', notificationsJson);
+      await _box.put('items', notificationsJson);
     } catch (e) {
       print('❌ Error saving notifications: $e');
     }

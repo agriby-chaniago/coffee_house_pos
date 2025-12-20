@@ -41,6 +41,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   Future<void> placeOrder({
     required String customerName,
     required String tableNumber,
+    required String paymentMethod,
     String? notes,
   }) async {
     state = state.copyWith(status: CheckoutStatus.loading);
@@ -66,19 +67,22 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         throw Exception('User belum login');
       }
 
-      // Prepare order items
+      // Prepare order items with correct field names matching OrderItem model
       final orderItems = cartState.items.map((item) {
         return {
+          'id':
+              '${item.productId}_${DateTime.now().millisecondsSinceEpoch}', // Generate unique ID
           'productId': item.productId,
           'productName': item.productName,
-          'size': item.size,
-          'price': item.price,
+          'selectedSize': item.size, // Changed from 'size' to 'selectedSize'
+          'basePrice': item.price, // Changed from 'price' to 'basePrice'
           'quantity': item.quantity,
-          'addons': item.addons
+          'addOns': item.addons // Changed from 'addons' to 'addOns'
               .map((a) => {
                     'id': a.id,
                     'name': a.name,
-                    'price': a.additionalPrice,
+                    'additionalPrice': a
+                        .additionalPrice, // Changed from 'price' to 'additionalPrice'
                   })
               .toList(),
           'notes': item.notes,
@@ -108,6 +112,7 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
         'taxRate': 11.0, // PPN 11%
         'total': cartState.total,
         'status': 'pending',
+        'paymentMethod': paymentMethod,
         'cashierId': 'customer-app',
         'notes': fullNotes,
       };

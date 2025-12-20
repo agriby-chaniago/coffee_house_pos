@@ -7,8 +7,15 @@ import '../../../../admin/inventory/data/models/addon_model.dart';
 // Fetch all active addons
 final addonsProvider = FutureProvider<List<AddOn>>((ref) async {
   try {
-    // Try to load from Hive first (cache)
-    final box = await Hive.openBox('addons_cache');
+    // Try to load from Hive first (cache) - use singleton box
+    Box box;
+    try {
+      box = Hive.box('addons_cache');
+    } catch (e) {
+      // Box not opened yet, open it
+      box = await Hive.openBox('addons_cache');
+    }
+
     final cachedData = box.get('addons');
 
     if (cachedData != null && cachedData is List) {

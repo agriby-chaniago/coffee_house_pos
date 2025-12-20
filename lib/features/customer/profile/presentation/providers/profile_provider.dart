@@ -5,6 +5,67 @@ import 'package:coffee_house_pos/core/config/appwrite_config.dart';
 import 'package:coffee_house_pos/features/auth/presentation/providers/auth_provider.dart';
 import 'package:appwrite/appwrite.dart';
 
+/// User data model from database
+class UserData {
+  final String userId;
+  final String email;
+  final String name;
+  final String phone;
+  final String photoUrl;
+
+  UserData({
+    required this.userId,
+    required this.email,
+    required this.name,
+    required this.phone,
+    required this.photoUrl,
+  });
+
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    return UserData(
+      userId: json['userId'] ?? '',
+      email: json['email'] ?? '',
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      photoUrl: json['photoUrl'] ?? '',
+    );
+  }
+}
+
+/// Provider to fetch user data from database
+final userDataProvider = FutureProvider.autoDispose<UserData?>((ref) async {
+  final authState = ref.watch(authStateProvider);
+
+  return authState.when(
+    data: (state) async {
+      if (state is! AuthStateAuthenticated) {
+        return null;
+      }
+
+      try {
+        final appwrite = ref.watch(appwriteProvider);
+        final databases = appwrite.databases;
+
+        print('🔄 Fetching user data from database for: ${state.user.$id}');
+
+        final doc = await databases.getDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.usersCollection,
+          documentId: state.user.$id,
+        );
+
+        print('✅ User data loaded: ${doc.data}');
+        return UserData.fromJson(doc.data);
+      } catch (e) {
+        print('❌ Error fetching user data: $e');
+        return null;
+      }
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
+});
+
 /// Profile statistics model
 class ProfileStats {
   final int totalOrders;

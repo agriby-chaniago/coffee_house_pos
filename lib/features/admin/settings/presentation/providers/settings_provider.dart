@@ -42,15 +42,29 @@ class StoreInfo {
 }
 
 class StoreInfoNotifier extends StateNotifier<StoreInfo> {
+  late final Box _box;
+  bool _isInitialized = false;
+
   StoreInfoNotifier()
       : super(StoreInfo(name: 'Coffee House', address: '', phone: '')) {
-    _loadStoreInfo();
+    _initBox();
+  }
+
+  Future<void> _initBox() async {
+    try {
+      _box = await Hive.openBox('settings');
+      _isInitialized = true;
+      await _loadStoreInfo();
+    } catch (e) {
+      print('❌ Error initializing settings box: $e');
+      _isInitialized = false;
+    }
   }
 
   Future<void> _loadStoreInfo() async {
+    if (!_isInitialized) return;
     try {
-      final box = await Hive.openBox('settings');
-      final storeInfoMap = box.get('store_info');
+      final storeInfoMap = _box.get('store_info');
 
       if (storeInfoMap != null) {
         state = StoreInfo.fromMap(Map<String, dynamic>.from(storeInfoMap));
@@ -65,6 +79,7 @@ class StoreInfoNotifier extends StateNotifier<StoreInfo> {
     String? address,
     String? phone,
   }) async {
+    if (!_isInitialized) return;
     try {
       state = state.copyWith(
         name: name,
@@ -72,8 +87,7 @@ class StoreInfoNotifier extends StateNotifier<StoreInfo> {
         phone: phone,
       );
 
-      final box = await Hive.openBox('settings');
-      await box.put('store_info', state.toMap());
+      await _box.put('store_info', state.toMap());
 
       print('✅ Store info saved: ${state.name}');
     } catch (e) {

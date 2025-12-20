@@ -3,16 +3,30 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/cart_item_model.dart';
 
 class CustomerCartNotifier extends StateNotifier<CustomerCartState> {
+  late final Box<CartItem> _box;
+  bool _isInitialized = false;
+
   CustomerCartNotifier() : super(CustomerCartState.initial()) {
-    _loadCart();
+    _initBox();
   }
 
   static const String _cartBoxName = 'customer_cart';
 
-  Future<void> _loadCart() async {
+  Future<void> _initBox() async {
     try {
-      final box = await Hive.openBox<CartItem>(_cartBoxName);
-      final items = box.values.toList();
+      _box = await Hive.openBox<CartItem>(_cartBoxName);
+      _isInitialized = true;
+      await _loadCart();
+    } catch (e) {
+      // Handle error - box initialization failed
+      _isInitialized = false;
+    }
+  }
+
+  Future<void> _loadCart() async {
+    if (!_isInitialized) return;
+    try {
+      final items = _box.values.toList();
       state = state.copyWith(items: items);
     } catch (e) {
       // Handle error silently or log
@@ -20,11 +34,11 @@ class CustomerCartNotifier extends StateNotifier<CustomerCartState> {
   }
 
   Future<void> _saveCart() async {
+    if (!_isInitialized) return;
     try {
-      final box = await Hive.openBox<CartItem>(_cartBoxName);
-      await box.clear();
+      await _box.clear();
       for (final item in state.items) {
-        await box.add(item);
+        await _box.add(item);
       }
     } catch (e) {
       // Handle error

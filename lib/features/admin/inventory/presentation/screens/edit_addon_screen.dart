@@ -49,7 +49,6 @@ class _EditAddOnScreenState extends ConsumerState<EditAddOnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final state = ref.watch(editAddOnProvider);
 
     return Scaffold(

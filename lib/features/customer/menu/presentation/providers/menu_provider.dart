@@ -6,6 +6,8 @@ import 'package:coffee_house_pos/core/services/appwrite_service.dart';
 import 'package:coffee_house_pos/core/services/hive_service.dart';
 import 'package:coffee_house_pos/core/utils/error_handler.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
+import 'package:coffee_house_pos/features/auth/presentation/providers/auth_provider.dart';
+import 'favorites_provider.dart';
 import 'dart:convert';
 
 /// Search query state
@@ -113,11 +115,36 @@ final filteredMenuProvider =
   final searchQuery = ref.watch(menuSearchProvider);
   final category = ref.watch(menuCategoryProvider);
 
+  // Get userId from auth state (StreamProvider returns AsyncValue)
+  final authStateAsync = ref.watch(authStateProvider);
+  final userId = authStateAsync.when(
+    data: (authState) {
+      if (authState is AuthStateAuthenticated) {
+        return authState.user.$id;
+      } else if (authState is AuthStateUnverified) {
+        return authState.user.$id;
+      }
+      return null;
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
+
+  final favorites = ref.watch(favoritesProvider(userId));
+
   return menuAsync.whenData((products) {
     var filtered = products;
 
     // Filter by category
-    if (category != 'All') {
+    if (category == 'Favorite') {
+      // Show only favorited products
+      print('🔍 Filtering favorites. Total favorites: ${favorites.length}');
+      print('🔍 Favorite IDs: $favorites');
+      filtered = filtered
+          .where((p) => p.id != null && favorites.contains(p.id!))
+          .toList();
+      print('🔍 Filtered products count: ${filtered.length}');
+    } else if (category != 'All') {
       filtered = filtered
           .where((p) => p.category.toLowerCase() == category.toLowerCase())
           .toList();
@@ -139,6 +166,8 @@ final filteredMenuProvider =
 /// Get category color
 Color getCategoryColor(String category) {
   switch (category.toLowerCase()) {
+    case 'favorite':
+      return Colors.red; // Red for favorite
     case 'coffee':
       return const Color(0xFFDF8E1D); // Peach
     case 'non-coffee':

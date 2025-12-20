@@ -39,22 +39,22 @@ class Order with _$Order {
       id = json['\$id'];
     }
 
-    // Handle items parsing from JSON string if needed
+    // Handle items parsing from JSON string if needed (backward compatible)
     List<OrderItem> items;
     try {
       if (json['items'] is String) {
-        print('🔄 Parsing items from JSON string');
         final decoded = jsonDecode(json['items']);
-        items = (decoded as List)
-            .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+        items = (decoded as List).map((item) {
+          final itemMap = item as Map<String, dynamic>;
+          // Convert old format to new format
+          return OrderItem.fromJson(_normalizeItemJson(itemMap));
+        }).toList();
       } else if (json['items'] is List) {
-        print('🔄 Parsing items from List');
-        items = (json['items'] as List)
-            .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+        items = (json['items'] as List).map((item) {
+          final itemMap = item as Map<String, dynamic>;
+          return OrderItem.fromJson(_normalizeItemJson(itemMap));
+        }).toList();
       } else {
-        print('⚠️ Unknown items type: ${json['items'].runtimeType}');
         items = [];
       }
     } catch (e) {
@@ -192,4 +192,26 @@ extension OrderExtension on Order {
         return null;
     }
   }
+}
+
+// Helper function to normalize old JSON format to new format
+Map<String, dynamic> _normalizeItemJson(Map<String, dynamic> json) {
+  return {
+    'id': json['id'] ?? 'item_${DateTime.now().millisecondsSinceEpoch}',
+    'productId': json['productId'],
+    'productName': json['productName'],
+    'selectedSize': json['selectedSize'] ?? json['size'], // Backward compatible
+    'basePrice': json['basePrice'] ?? json['price'], // Backward compatible
+    'quantity': json['quantity'],
+    'addOns': (json['addOns'] ?? json['addons'] ?? []) // Backward compatible
+        .map<Map<String, dynamic>>((addon) => {
+              'addOnId': addon['id'],
+              'name': addon['name'],
+              'category': addon['category'] ?? 'Extra',
+              'additionalPrice':
+                  addon['additionalPrice'] ?? addon['price'] ?? 0.0,
+            })
+        .toList(),
+    'notes': json['notes'] ?? '',
+  };
 }

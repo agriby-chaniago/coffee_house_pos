@@ -9,6 +9,7 @@ import '../widgets/product_detail_modal.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:coffee_house_pos/features/customer/shared/widgets/customer_bottom_nav.dart';
 import '../../../notifications/presentation/providers/notifications_provider.dart';
+import '../../../../admin/settings/presentation/providers/settings_provider.dart';
 
 class MenuScreen extends ConsumerStatefulWidget {
   const MenuScreen({super.key});
@@ -33,35 +34,17 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final theme = Theme.of(context);
     final menuAsync = ref.watch(filteredMenuProvider);
     final selectedCategory = ref.watch(menuCategoryProvider);
+    final storeInfo = ref.watch(storeInfoProvider);
 
     return Scaffold(
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(
-              Icons.person_rounded,
-              color: theme.colorScheme.primary,
-            ),
+        title: Text(
+          storeInfo.name,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        title: Row(
-          children: [
-            const Icon(
-              Icons.coffee_rounded,
-              color: Color(0xFFDF8E1D),
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Coffee House',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        centerTitle: false,
         actions: [
           Consumer(
             builder: (context, ref, child) {
@@ -188,7 +171,14 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   }
 
   Widget _buildCategoryTabs(ThemeData theme, String selectedCategory) {
-    final categories = ['All', 'Coffee', 'Non-Coffee', 'Food', 'Dessert'];
+    final categories = [
+      'All',
+      'Favorite',
+      'Coffee',
+      'Non-Coffee',
+      'Food',
+      'Dessert'
+    ];
 
     return Container(
       height: 56,

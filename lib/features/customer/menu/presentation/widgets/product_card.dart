@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:coffee_house_pos/features/customer/menu/data/models/product_model.dart';
 import 'package:coffee_house_pos/core/utils/currency_formatter.dart';
 import '../providers/menu_provider.dart';
+import '../providers/favorites_provider.dart';
+import '../../../../auth/presentation/providers/auth_provider.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final Product product;
   final VoidCallback onTap;
   final VoidCallback? onQuickAdd;
@@ -18,9 +21,27 @@ class ProductCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final categoryColor = getCategoryColor(product.category);
+
+    // Get userId from auth state (StreamProvider returns AsyncValue)
+    final authStateAsync = ref.watch(authStateProvider);
+    final userId = authStateAsync.when(
+      data: (authState) {
+        if (authState is AuthStateAuthenticated) {
+          return authState.user.$id;
+        } else if (authState is AuthStateUnverified) {
+          return authState.user.$id;
+        }
+        return null;
+      },
+      loading: () => null,
+      error: (_, __) => null,
+    );
+
+    final isFavorite =
+        ref.watch(favoritesProvider(userId)).contains(product.id);
 
     return Card(
       elevation: 2,
@@ -137,6 +158,46 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Favorite Button
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          ref
+                              .read(favoritesProvider(userId).notifier)
+                              .toggleFavorite(product.id!);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.black.withOpacity(0.5)
+                                : Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 18,
+                            color: isFavorite
+                                ? Colors.red
+                                : theme.colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -184,11 +245,11 @@ class ProductCard extends StatelessWidget {
                                     shadows:
                                         theme.brightness == Brightness.light
                                             ? [
-                                                Shadow(
+                                                const Shadow(
                                                   color: Colors.white,
                                                   blurRadius: 3,
                                                 ),
-                                                Shadow(
+                                                const Shadow(
                                                   color: Colors.white,
                                                   blurRadius: 5,
                                                 ),
@@ -209,11 +270,11 @@ class ProductCard extends StatelessWidget {
                                     shadows:
                                         theme.brightness == Brightness.light
                                             ? [
-                                                Shadow(
+                                                const Shadow(
                                                   color: Colors.white,
                                                   blurRadius: 3,
                                                 ),
-                                                Shadow(
+                                                const Shadow(
                                                   color: Colors.white,
                                                   blurRadius: 5,
                                                 ),
