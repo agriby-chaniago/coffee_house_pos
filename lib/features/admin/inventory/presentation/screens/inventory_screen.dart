@@ -6,7 +6,6 @@ import '../providers/inventory_provider.dart';
 import 'stock_adjustment_screen.dart';
 import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
-import 'package:coffee_house_pos/features/admin/pos/presentation/providers/cart_provider.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});

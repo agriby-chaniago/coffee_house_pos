@@ -41,14 +41,26 @@ class Order with _$Order {
 
     // Handle items parsing from JSON string if needed
     List<OrderItem> items;
-    if (json['items'] is String) {
-      items = (jsonDecode(json['items']) as List)
-          .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
-          .toList();
-    } else {
-      items = (json['items'] as List)
-          .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
-          .toList();
+    try {
+      if (json['items'] is String) {
+        print('🔄 Parsing items from JSON string');
+        final decoded = jsonDecode(json['items']);
+        items = (decoded as List)
+            .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else if (json['items'] is List) {
+        print('🔄 Parsing items from List');
+        items = (json['items'] as List)
+            .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else {
+        print('⚠️ Unknown items type: ${json['items'].runtimeType}');
+        items = [];
+      }
+    } catch (e) {
+      print('❌ Error parsing items: $e');
+      print('   Items data: ${json['items']}');
+      items = [];
     }
 
     // Handle timestamps - AppWrite uses $createdAt/$updatedAt

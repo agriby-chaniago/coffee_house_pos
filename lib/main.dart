@@ -5,6 +5,7 @@ import 'core/router/app_router.dart';
 import 'core/services/hive_service.dart';
 import 'core/services/offline_sync_manager.dart';
 import 'core/services/appwrite_service.dart';
+import 'features/customer/menu/presentation/providers/addons_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +43,10 @@ class _CoffeeHouseAppState extends ConsumerState<CoffeeHouseApp> {
       final appwrite = ref.read(appwriteProvider);
       await OfflineSyncManager().initialize(appwrite.databases);
       print('✅ Sync manager initialized from main.dart');
+
+      // Preload add-ons for customer side
+      ref.read(addonsProvider);
+      print('🔄 Preloading add-ons...');
     } catch (e) {
       print('⚠️ Failed to initialize sync manager: $e');
     }

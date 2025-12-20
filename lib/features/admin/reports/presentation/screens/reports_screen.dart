@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:coffee_house_pos/core/utils/currency_formatter.dart';
 import '../providers/reports_provider.dart';
-import 'package:coffee_house_pos/features/admin/pos/presentation/providers/cart_provider.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});

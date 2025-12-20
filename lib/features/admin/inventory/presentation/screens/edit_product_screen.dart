@@ -683,7 +683,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                         : null,
                     dense: true,
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

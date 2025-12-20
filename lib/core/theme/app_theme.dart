@@ -54,4 +54,35 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 class AppTheme {
   static ThemeData get lightTheme => CatppuccinLatte.theme;
   static ThemeData get darkTheme => CatppuccinMocha.theme;
+
+  // Catppuccin Mocha colors (most commonly used)
+  static const Color base = CatppuccinMocha.base;
+  static const Color mantle = CatppuccinMocha.mantle;
+  static const Color crust = CatppuccinMocha.crust;
+  static const Color surface = CatppuccinMocha.surface0;
+  static const Color surface0 = CatppuccinMocha.surface0;
+  static const Color surface1 = CatppuccinMocha.surface1;
+  static const Color surface2 = CatppuccinMocha.surface2;
+  static const Color overlay0 = CatppuccinMocha.surface0;
+  static const Color overlay1 = CatppuccinMocha.surface1;
+  static const Color overlay2 = CatppuccinMocha.surface2;
+
+  static const Color text = CatppuccinMocha.text;
+  static const Color subtext0 = CatppuccinMocha.subtext0;
+  static const Color subtext1 = CatppuccinMocha.subtext1;
+
+  static const Color rosewater = CatppuccinMocha.rosewater;
+  static const Color flamingo = CatppuccinMocha.flamingo;
+  static const Color pink = CatppuccinMocha.pink;
+  static const Color mauve = CatppuccinMocha.mauve;
+  static const Color red = CatppuccinMocha.red;
+  static const Color maroon = CatppuccinMocha.maroon;
+  static const Color peach = CatppuccinMocha.peach;
+  static const Color yellow = CatppuccinMocha.yellow;
+  static const Color green = CatppuccinMocha.green;
+  static const Color teal = CatppuccinMocha.teal;
+  static const Color sky = CatppuccinMocha.sky;
+  static const Color sapphire = CatppuccinMocha.sapphire;
+  static const Color blue = CatppuccinMocha.blue;
+  static const Color lavender = CatppuccinMocha.lavender;
 }

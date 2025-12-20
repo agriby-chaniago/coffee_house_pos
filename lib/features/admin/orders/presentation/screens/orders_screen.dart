@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/orders_provider.dart';
 import '../widgets/order_card.dart';
-import 'package:coffee_house_pos/features/admin/pos/presentation/providers/cart_provider.dart';
 
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});

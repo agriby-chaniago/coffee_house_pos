@@ -6,9 +6,13 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/customer/menu/presentation/screens/menu_screen.dart';
 import '../../features/customer/cart/presentation/screens/cart_screen.dart';
+import '../../features/customer/orders/presentation/screens/checkout_screen.dart';
 import '../../features/customer/orders/presentation/screens/order_history_screen.dart';
 import '../../features/customer/orders/presentation/screens/order_tracking_screen.dart';
 import '../../features/customer/profile/presentation/screens/profile_screen.dart';
+import '../../features/customer/profile/presentation/screens/terms_conditions_screen.dart';
+import '../../features/customer/profile/presentation/screens/privacy_policy_screen.dart';
+import '../../features/customer/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/admin/pos/presentation/screens/pos_screen.dart';
 import '../../features/admin/orders/presentation/screens/orders_screen.dart';
 import '../../features/admin/orders/presentation/screens/order_detail_screen.dart';
@@ -82,6 +86,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CartScreen(),
       ),
       GoRoute(
+        path: '/customer/checkout',
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+      GoRoute(
         path: '/customer/orders',
         builder: (context, state) => const OrderHistoryScreen(),
       ),
@@ -95,6 +103,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customer/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/customer/terms',
+        builder: (context, state) => const TermsConditionsScreen(),
+      ),
+      GoRoute(
+        path: '/customer/privacy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/customer/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
 
       // Admin Routes

@@ -604,7 +604,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                         : null,
                     dense: true,
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

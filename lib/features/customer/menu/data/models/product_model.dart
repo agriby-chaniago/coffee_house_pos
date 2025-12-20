@@ -33,23 +33,43 @@ class Product with _$Product {
 
     // Handle variants parsing from JSON string if needed
     List<ProductVariant> variants;
-    if (json['variants'] is String) {
-      variants = (jsonDecode(json['variants']) as List)
-          .map((v) => ProductVariant.fromJson(v as Map<String, dynamic>))
-          .toList();
-    } else {
-      variants = (json['variants'] as List)
-          .map((v) => ProductVariant.fromJson(v as Map<String, dynamic>))
-          .toList();
+    try {
+      if (json['variants'] is String) {
+        variants = (jsonDecode(json['variants']) as List)
+            .map((v) => ProductVariant.fromJson(v as Map<String, dynamic>))
+            .toList();
+      } else if (json['variants'] is List) {
+        variants = (json['variants'] as List).map((v) {
+          if (v is Map<String, dynamic>) {
+            return ProductVariant.fromJson(v);
+          } else if (v is String) {
+            return ProductVariant.fromJson(
+                jsonDecode(v) as Map<String, dynamic>);
+          }
+          throw Exception('Invalid variant format');
+        }).toList();
+      } else {
+        throw Exception('variants field is neither String nor List');
+      }
+    } catch (e) {
+      print('⚠️ Error parsing variants: $e');
+      variants = [];
     }
 
     // Handle availableAddOnIds parsing from JSON string if needed
     List<String> availableAddOnIds;
-    if (json['availableAddOnIds'] is String) {
-      availableAddOnIds =
-          List<String>.from(jsonDecode(json['availableAddOnIds']));
-    } else {
-      availableAddOnIds = List<String>.from(json['availableAddOnIds']);
+    try {
+      if (json['availableAddOnIds'] is String) {
+        availableAddOnIds =
+            List<String>.from(jsonDecode(json['availableAddOnIds']));
+      } else if (json['availableAddOnIds'] is List) {
+        availableAddOnIds = List<String>.from(json['availableAddOnIds']);
+      } else {
+        throw Exception('availableAddOnIds field is neither String nor List');
+      }
+    } catch (e) {
+      print('⚠️ Error parsing availableAddOnIds: $e');
+      availableAddOnIds = [];
     }
 
     return Product(

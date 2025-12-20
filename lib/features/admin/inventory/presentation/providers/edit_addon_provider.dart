@@ -1,4 +1,3 @@
-import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/config/appwrite_config.dart';
 import '../../../../../core/services/appwrite_service.dart';

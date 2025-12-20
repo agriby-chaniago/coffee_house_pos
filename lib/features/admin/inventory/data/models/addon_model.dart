@@ -40,7 +40,7 @@ class AddOn {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = <String, dynamic>{
       'name': name,
       'category': category,
       'additionalPrice': additionalPrice,
@@ -48,6 +48,13 @@ class AddOn {
       'sortOrder': sortOrder,
       'isActive': isActive,
     };
+
+    // Include id if available
+    if (id != null) {
+      json['\$id'] = id!;
+    }
+
+    return json;
   }
 
   AddOn copyWith({

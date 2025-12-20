@@ -719,7 +719,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 context: context,
                 builder: (context) => AddToCartDialog(
                   product: product,
-                  availableAddons: [],
+                  availableAddons: const [],
                 ),
               );
             },
@@ -729,7 +729,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 context: context,
                 builder: (context) => AddToCartDialog(
                   product: product,
-                  availableAddons: [],
+                  availableAddons: const [],
                 ),
               );
             },

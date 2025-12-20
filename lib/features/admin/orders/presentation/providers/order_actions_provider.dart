@@ -1,4 +1,3 @@
-import 'package:appwrite/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:coffee_house_pos/core/config/appwrite_config.dart';
@@ -71,7 +70,7 @@ class OrderActionsNotifier extends StateNotifier<OrderActionState> {
         print('📥 Order status update queued for sync when online');
         print('═══════════════════════════════════════════════════════');
 
-        state = OrderActionState.success(
+        state = const OrderActionState.success(
           'Order updated (will sync when online)',
         );
       }

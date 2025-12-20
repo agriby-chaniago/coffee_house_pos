@@ -6,7 +6,6 @@ import 'package:coffee_house_pos/core/theme/app_theme.dart';
 import 'package:coffee_house_pos/features/auth/presentation/providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import 'change_password_screen.dart';
-import 'package:coffee_house_pos/features/admin/pos/presentation/providers/cart_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
