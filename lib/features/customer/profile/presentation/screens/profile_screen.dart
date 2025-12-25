@@ -484,7 +484,7 @@ class ProfileScreen extends ConsumerWidget {
                 title: const Text('Terms & Conditions'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  context.push('/customer/terms');
+                  context.push('/customer/terms-conditions');
                 },
               ),
               Divider(
@@ -499,7 +499,7 @@ class ProfileScreen extends ConsumerWidget {
                 title: const Text('Privacy Policy'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  context.push('/customer/privacy');
+                  context.push('/customer/privacy-policy');
                 },
               ),
             ],
