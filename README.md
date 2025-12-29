@@ -1,44 +1,325 @@
-Plan: Flutter Coffee House - Production Ready
-Aplicasi coffee house production-ready dengan Customer app (Google OAuth → langsung ke menu, real-time order tracking, digital receipt) dan Admin POS (offline-first, single device only, inventory + waste tracking, analytics dashboard). Complete features: Catppuccin theme, PPN 11%, IDR currency, M/L sizes, add-ons system, daily order numbering, simple per-unit stock, detailed waste logging, fixed categories (Coffee/Non-Coffee/Food/Dessert), manual order status transitions, optimized analytics (30 days max), dan pre-seeded admin.
+# Coffio
 
-Steps
-Initialize project & core setup — Create Flutter project coffee_house_pos di /home/agribychaniago/Flutter Projects/uas, setup folder structure (lib/core/[constants/theme/services/utils/router/widgets], lib/features/[auth/customer/admin]/[data/domain/presentation]), konfig [pubspec.yaml] dengan all dependencies, run flutter pub get, init Hive dengan await Hive.initFlutter(), register adapters, open boxes (orders/products/addons/offline_queue/settings/daily_counter), create [core/constants/app_constants.dart] (PPN_RATE=0.11, categories=['Coffee','Non-Coffee','Food','Dessert'], OrderStatus/PaymentMethod enums), build [core/theme/app_theme.dart] dengan Catppuccin Mocha & Latte complete color schemes, dan setup [core/utils/currency_formatter.dart] untuk IDR formatting
+Coffee House POS & Self Order System
 
-Setup AppWrite & pre-seed admin — Create AppWrite project di cloud.appwrite.io, enable Google OAuth2 (add Client ID/Secret dari Google Cloud Console, set redirect URIs), create database coffee_house_db, create collections dengan attributes & indexes (users, products, addons, orders, stock_movements, waste_logs), set permissions (users: read/write own, products: read all/write admin only, orders: create customer/read own + admin all), create storage bucket product-images (max 1MB, allowed: jpg/jpeg/png), pre-seed admin: manual create user via AppWrite Console (email: admin@coffeehouse.local, password: CoffeeAdmin2024!, add custom attribute role: admin, set emailVerification: true), save AppWrite endpoint & project ID ke [core/config/appwrite_config.dart]
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.x-blue.svg)](https://dart.dev)
+[![License](https://img.shields.io/badge/License-Educational-lightgrey.svg)](#)
+[![Repo Status](https://img.shields.io/badge/Status-Active-success.svg)](#)
 
-Build AppWrite service & auth repository — Implement [core/services/appwrite_service.dart] singleton class dengan Client initialization (endpoint, projectId, selfSigned: false), Account/Databases/Storage/Realtime instances, methods: initializeClient(), getDatabase(), getStorage(), create [features/auth/data/repositories/auth_repository.dart] dengan methods: signInWithGoogle() (createOAuth2Session), getCurrentUser(), isEmailVerified(), sendEmailVerification(), updatePassword(oldPassword, newPassword), signOut(), getUserRole() (get custom attribute), error handling untuk AppwriteException, dan register di GetIt service locator
+Coffio adalah aplikasi **Point of Sale (POS) dan Self Order** untuk coffee shop yang dibangun menggunakan **Flutter**.
+Aplikasi ini dirancang dengan pendekatan arsitektur modern, pemisahan fitur yang jelas, serta fokus pada kualitas kode dan skalabilitas.
 
-Setup routing & auth flow — Create [core/router/app_router.dart] dengan GoRouter configuration, routes: / (SplashScreen), /login (LoginScreen), /verify-email (VerifyEmailScreen), /customer/menu (MenuScreen), /customer/cart (CartScreen), /customer/orders (OrderHistoryScreen), /customer/profile (ProfileScreen), /admin/pos (PosScreen), /admin/inventory (InventoryScreen), /admin/reports (ReportsScreen), /admin/settings (SettingsScreen), implement redirect logic: check auth state → if not authenticated go /login, if not verified go /verify-email, if customer role go /customer/menu, if admin role go /admin/pos, build [features/auth/presentation/screens/login_screen.dart] dengan Catppuccin themed UI, Google sign-in button dengan logo, dan loading states
+Coffio memiliki dua sisi utama:
 
-Create all data models with freezed — Setup build_runner & freezed, create models: [product_model.dart] dengan @freezed annotation (id, name, description, category, imageUrl, variants: List<ProductVariant{size, price, stockUsagePerUnit}>, availableAddOnIds, stockUnit, currentStock, minStock, isActive, timestamps), [addon_model.dart] (id, name, category, additionalPrice, isDefault, sortOrder), [order_model.dart] (id, orderNumber dengan format YYYYMMDD-###, customerId optional, customerName optional, items: List<OrderItem>, subtotal, taxAmount, taxRate, total, status, paymentMethod, cashierId, timestamps, isSynced), [order_item_model.dart] (productId, productName, selectedSize, basePrice, quantity, addOns: List<SelectedAddOn>, notes, computed: itemTotal getter), [waste_log_model.dart] (id, productId, productName, amount, stockUnit, reason, notes, loggedBy, timestamp), run flutter pub run build_runner build
+- **Admin (POS System)** — untuk operasional toko
+- **Customer (Self Order System)** — untuk pemesanan mandiri oleh pelanggan
 
-Build Customer menu & cart with add-ons — Implement [features/customer/menu/presentation/providers/menu_provider.dart] dengan AsyncNotifierProvider fetch products from AppWrite, cache di Hive, create [menu_screen.dart] (AppBar dengan profile icon, category tabs fixed: All/Coffee/Non-Coffee/Food/Dessert, GridView products dengan cached_network_image, category badge, price M/L, tap → show product detail modal), [product_detail_modal.dart] (product image, name, description, size selector M/L dengan RadioListTile show prices, add-ons grouped by category dengan ExpansionTile [Milk Type, Sugar Level, Extras, Ice Level] CheckboxListTile show additional prices, quantity stepper, live price calculation display, add to cart button), [features/customer/cart/presentation/providers/cart_provider.dart] dengan StateNotifier (add/remove/update/clear cart, calculate subtotal/tax/total), [cart_screen.dart] (cart items ListView, show size & add-ons per item, edit button reopen product modal, PPN breakdown card, checkout button)
+---
 
-Implement Customer orders with Realtime — Build [features/customer/orders/presentation/checkout_screen.dart] (review items, optional TextField customer name, order summary dengan subtotal+tax+total, confirm button → generate orderNumber dari daily counter, create Order, save to AppWrite orders collection, clear cart, navigate to order tracking), create [order_realtime_provider.dart] (subscribe to specific order updates via AppWrite Realtime, listen status changes, notify UI), [order_tracking_screen.dart] (order number large display, status stepper with icons & colors: Pending[grey], Preparing[blue], Ready[green], Completed[green], estimated time per status, real-time updates from Realtime subscription), [order_history_screen.dart] (FutureProvider fetch user orders, ListView dengan order cards, filter chips: All/Pending/Completed, tap → [order_detail_screen.dart] digital receipt: order info, items table, add-ons list, totals, share button)
+## Fitur Utama
 
-Build Admin POS offline-first — Implement [features/admin/pos/presentation/pos_screen.dart] layout: Row split (Expanded left: product grid, SizedBox 400 right: cart panel), product grid (category tabs, GridView products dengan stock badge, tap → auto add to cart dengan default M & default add-ons), cart panel (ListView order items, each item: ListTile product name + size selector Dropdown M/L → recalc price + add-ons edit IconButton → BottomSheet show checkboxes + quantity stepper + remove button, subtotal/PPN/total Card dengan IDR format, Divider, payment method chips selector, Complete Order ElevatedButton), [pos_provider.dart] StateNotifier (manage cart, payment method, complete order flow), order completion: check connectivity → if online: save to AppWrite + Hive, if offline: save to Hive + queue, generate orderNumber (get daily counter from Hive, increment, reset if date changed), deduct stock locally, show SnackBar success dengan order number, clear cart
+### Admin — POS System
 
-Implement offline sync manager — Create [core/services/offline_sync_manager.dart] class dengan ConnectivityPlus stream listener, Timer.periodic(30s) check connectivity, syncAll() method: (1) get offline_queue from Hive, (2) process each OfflineQueueItem with retry logic max 3x, (3) for CREATE operations: createDocument di AppWrite, deduct stock on server via updateDocument products, (4) for UPDATE: updateDocument, (5) mark local orders isSynced: true, (6) pull latest products/addons, cache to Hive, (7) delete processed queue items, (8) update sync status provider, create [OfflineQueueItem] model (id, operationType, collectionName, data, createdAt, retryCount, lastError), add to queue: queueOperation() method save to Hive offline_queue box, show sync status di POS AppBar (StreamProvider connectivity → icon indicator: green checkmark online synced, yellow sync pending, red offline)
+#### Manajemen Menu
 
-Build inventory & waste management — Implement [features/admin/inventory/presentation/inventory_screen.dart] (products ListView, show name/category/stock/unit/minStock, low stock red badge if currentStock≤minStock, FloatingActionButton add product, search bar, category filter), [add_product_screen.dart] form: TextFields (name, description), DropdownButton category (Coffee/Non-Coffee/Food/Dessert), ImagePicker + compress helper (resize 800x800, quality 85%, max 1MB), upload to AppWrite Storage get fileId, save imageUrl, variants inputs (M price, M stockUsagePerUnit, L price, L stockUsagePerUnit), DropdownButton stockUnit (pcs/kg/liter/gram/ml), initial stock TextField, minStock TextField, save button → create product AppWrite, [stock_adjustment_screen.dart] (product selector Dropdown, adjustment type: Restock/Waste/Manual, amount TextField, if Waste: reason Dropdown [Expired/Damaged/Spilled/Other] + notes TextField, save → if Waste: create WasteLog, update currentStock, create StockMovement log), [waste_logs_screen.dart] (ListView waste logs dengan filter by date/reason, show product/amount/reason/notes/timestamp)
+- CRUD Produk
+- CRUD Topping (add-ins / tambahan menu)
+- Upload dan manajemen gambar produk
 
-Build analytics dashboard — Implement [features/admin/reports/presentation/reports_screen.dart] date range picker (Today/This Week/This Month/Custom via DateRangePicker), fetch orders filtered by date range (max 30 days untuk performance), calculate metrics: totalRevenue = sum(order.total), orderCount, averageOrderValue = totalRevenue/orderCount, compare with previous period (fetch previous range, calculate percentage change, show with arrow icon & color), Sales Trend Chart: LineChart from fl_chart (X axis: dates, Y axis: revenue, daily aggregation, tooltip show exact amount, gradient fill under line), Top Products: group orders by productId, count quantities, sort desc, take top 10, ListView (product name, qty sold, revenue contribution %), Category Performance: PieChart sum revenue per category, show legend with percentages, Hourly Heatmap: GridView 24 cells, aggregate orders by hour, color intensity based on order count (light to dark Catppuccin colors), Payment Methods: BarChart count per payment method, Stock Insights: filter products where currentStock≤minStock, show list, waste logs summary (total waste cost = sum(waste.amount \* product.price)), export PDF button → generate with pdf package (add logo, metrics tables, charts as images)
+#### POS & Transaksi
 
-Complete settings & finalize — Build [features/admin/settings/presentation/settings_screen.dart] (ListTiles: Account section show admin email, Change Password button → [change_password_screen.dart] form (current password TextField obscure, new password, confirm password, validation, submit → authRepository.updatePassword()), Store Info (editable: store name, address, phone via TextFields, save to Hive settings), Theme Toggle SwitchListTile (Mocha ↔ Latte, persist to Hive, themeProvider notify), App Version display, Logout button → confirm dialog → signOut()), [features/customer/profile/presentation/profile_screen.dart] simple (email display, order stats: total orders/total spent fetch from AppWrite, logout button), implement image optimization di [core/utils/image_helper.dart] (pickImage → compress → validate size → return File), add default coffee placeholder asset [assets/images/coffee_placeholder.png], setup cached_network_image everywhere dengan placeholder & errorWidget, add pull-to-refresh di menu & order history, stock deduction logic finalize: on order completed → for each item: find product, find variant by size, deduct stockUsagePerUnit \* quantity from currentStock, save locally & sync, complete README.md dengan AppWrite setup steps, test scenarios, run flutter analyze & fix issues
+- Keranjang pesanan (produk dan topping)
+- Checkout transaksi
+- Generate struk dalam format PDF
+- Informasi toko terintegrasi otomatis ke struk
 
-Implementation Ready
-Rencana ini sudah 100% siap untuk implementasi. Semua keputusan teknis sudah final:
+#### Orders Management
 
-✅ Fixed categories: Coffee, Non-Coffee, Food, Dessert
-✅ Manual order status: Pending → Preparing (admin) → Ready (admin) → Completed (auto/admin)
-✅ Simple analytics: Query max 30 days, no pre-aggregation
-✅ Single device admin: Admin login limited to 1 device (enforce via session management)
-✅ Direct to menu: Customer post-Google OAuth langsung ke /customer/menu
-✅ Stock system: Simple per-unit (no conversion), waste tracking detailed (reason + notes)
-✅ Offline POS: Hive local storage + queue sync saat online
-✅ Image optimization: Max 1MB, 800x800px, 7 days cache
-✅ Pre-seeded admin: admin@coffeehouse.local / CoffeeAdmin2024!
+Manajemen seluruh pesanan masuk dengan status:
 
-Estimasi waktu implementasi: 6-8 minggu (1 developer full-time)
-Total screens: ~20 screens
-LOC: ~12,000-15,000 lines
+- Pending
+- Preparing
+- Ready
+- Completed
+
+#### Settings Admin
+
+- Ganti password
+- Ubah nama toko
+- Ubah alamat toko
+- Ubah nomor HP toko
+  (Terintegrasi ke struk dan sisi Customer)
+- Informasi versi aplikasi
+- Toggle tema:
+  - Dark: Catppuccin Mocha
+  - Light: Catppuccin Latte
+
+#### System Indicator
+
+- Indikator status koneksi internet (online / offline)
+
+---
+
+### Customer — Self Order System
+
+#### Self Order
+
+- Melihat daftar produk
+- Memilih topping
+- Melakukan pemesanan mandiri
+
+#### My Orders
+
+- Riwayat seluruh pesanan Customer
+- Informasi status pesanan
+
+#### Profile
+
+- Ganti foto profil
+- Ubah nama lengkap
+  (Otomatis terintegrasi ke proses pemesanan)
+- Ubah nomor telepon
+- Informasi email (read-only)
+- Ganti password
+
+#### Statistik Customer
+
+- Total orders
+- Total spent
+- Pesanan pending
+- Pesanan completed
+
+#### Profile Settings & About
+
+- Toggle tema Light / Dark
+- Notifikasi
+- About App
+- Terms & Conditions
+- Privacy Policy
+
+---
+
+## Arsitektur & Pendekatan Teknis
+
+Coffio menggunakan **feature-based architecture** dengan pemisahan layer:
+
+- Data
+- Domain
+- Presentation
+
+Pendekatan ini bertujuan menjaga kode tetap modular, mudah dirawat, dan siap dikembangkan lebih lanjut.
+
+---
+
+## Tech Stack
+
+- Flutter
+- Riverpod (State Management)
+- GoRouter (Declarative Routing)
+- Appwrite (Authentication & Database)
+- Hive (Local Storage & Offline Cache)
+- GetIt (Dependency Injection)
+- Freezed (Immutable Models)
+- JSON Serializable (Code Generation)
+- fl_chart (Data Visualization)
+- pdf & printing (Receipt Generation)
+
+---
+
+## Offline Handling
+
+- Penyimpanan lokal menggunakan Hive
+- Monitoring koneksi menggunakan connectivity_plus
+- Aplikasi menyesuaikan perilaku saat offline atau online
+
+Pendekatan ini penting untuk sistem POS yang digunakan di kondisi lapangan.
+
+---
+
+## Repository Notes
+
+- Repository ini berisi full source code
+- Struktur project siap ditinjau secara teknis
+- Fokus pada arsitektur, state management, dan kualitas kode
+
+---
+
+## Tujuan Project
+
+Coffio dikembangkan sebagai project pembelajaran dan implementasi nyata untuk:
+
+- Flutter application architecture
+- POS & Self Order system
+- Clean code dan scalable structure
+- Business flow yang realistis
+
+---
+
+## License
+
+Project ini dikembangkan untuk keperluan edukasi dan evaluasi teknis.
+
+---
+
+# Coffio
+
+Coffee House POS & Self Order System
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.x-blue.svg)](https://dart.dev)
+[![License](https://img.shields.io/badge/License-Educational-lightgrey.svg)](#)
+[![Repo Status](https://img.shields.io/badge/Status-Active-success.svg)](#)
+
+Coffio is a **Point of Sale (POS) and Self Order** application for coffee shops built with **Flutter**.  
+The application is designed with a modern architecture, clear feature separation, and a strong focus on code quality and scalability.
+
+Coffio consists of two main sides:
+
+- **Admin (POS System)** — for store operations
+- **Customer (Self Order System)** — for customer self-ordering
+
+---
+
+## Key Features
+
+### Admin — POS System
+
+#### Menu Management
+
+- Product CRUD
+- Topping CRUD (add-ins)
+- Product image management
+
+#### POS & Transactions
+
+- Cart management (products and toppings)
+- Checkout process
+- Receipt generation in PDF format
+- Store information automatically integrated into receipts
+
+#### Orders Management
+
+Manage all incoming orders with statuses:
+
+- Pending
+- Preparing
+- Ready
+- Completed
+
+#### Admin Settings
+
+- Change password
+- Update store name
+- Update store address
+- Update store phone number
+  (Integrated into receipts and Customer side)
+- App version information
+- Theme toggle:
+  - Dark: Catppuccin Mocha
+  - Light: Catppuccin Latte
+
+#### System Indicator
+
+- Internet connectivity status indicator
+
+---
+
+### Customer — Self Order System
+
+#### Self Order
+
+- Browse product list
+- Select toppings
+- Place orders independently
+
+#### My Orders
+
+- Order history
+- Order status tracking
+
+#### Profile
+
+- Update profile picture
+- Update full name
+  (Automatically used during order placement)
+- Update phone number
+- Email information (read-only)
+- Change password
+
+#### Customer Statistics
+
+- Total orders
+- Total spent
+- Pending orders
+- Completed orders
+
+#### Profile Settings & About
+
+- Light / Dark theme toggle
+- Notifications
+- About App
+- Terms & Conditions
+- Privacy Policy
+
+---
+
+## Architecture & Technical Approach
+
+Coffio implements a **feature-based architecture** with clear separation into:
+
+- Data layer
+- Domain layer
+- Presentation layer
+
+This approach improves maintainability, scalability, and code readability.
+
+---
+
+## Tech Stack
+
+- Flutter
+- Riverpod (State Management)
+- GoRouter (Declarative Routing)
+- Appwrite (Authentication & Database)
+- Hive (Local Storage & Offline Cache)
+- GetIt (Dependency Injection)
+- Freezed (Immutable Models)
+- JSON Serializable (Code Generation)
+- fl_chart (Data Visualization)
+- pdf & printing (Receipt Generation)
+
+---
+
+## Offline Support
+
+- Local data caching using Hive
+- Connectivity monitoring using connectivity_plus
+- Adaptive behavior for offline and online scenarios
+
+This is essential for real-world POS systems.
+
+---
+
+## Repository Notes
+
+- This repository contains full source code
+- Structured and ready for technical review
+- Focused on architecture, state management, and implementation quality
+
+---
+
+## Project Purpose
+
+Coffio is developed as an educational and practical project focusing on:
+
+- Flutter application architecture
+- POS & Self Order systems
+- Clean code and scalable design
+- Realistic business workflows
+
+---
+
+## License
+
+This project is intended for educational and technical evaluation purposes.
